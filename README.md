@@ -81,6 +81,9 @@ If there is any problem causing a crash, you can press and hold the `ESC` key to
 #效果类型 0=Blur 1=Acrylic(注意 在Windows 11下是Mica效果)
 #Effect type 0=blur 1=acrylic(note that mica effect is used in Windows 11)
 effect=1
+#在windows10因为API会把窗口边框的阴影也模糊掉 程序默认会调整窗口为窄边框 如果你不需要 设置为false
+#In windows10, because the API will blur the shadow of the window border, the program will adjust the window to a narrow border by default. If you don't need it, set it to false
+smallBorder=true
 [blend]
 #背景混合颜色的RGBA分量
 #RGBA component of background blend color
