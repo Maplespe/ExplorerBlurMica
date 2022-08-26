@@ -1,5 +1,5 @@
 /*
-* Hook函数声明
+* Hook鍑芥暟瀹氫箟
 *
 * Author: Maple
 * date: 2021-7-13 Create
@@ -11,7 +11,7 @@
 #include "minhook\MinHook.h"
 #include "Helper.h"
 
-//刷新插件配置
+//鍒锋柊閰嶇疆
 extern void RefreshConfig();
 
 namespace Hook {
