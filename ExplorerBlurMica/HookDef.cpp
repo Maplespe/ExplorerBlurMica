@@ -93,7 +93,6 @@ namespace Hook
     auto _DrawThemeText_            = HookDef(DrawThemeText, MyDrawThemeText);
     auto _DrawThemeTextEx_          = HookDef(DrawThemeTextEx, MyDrawThemeTextEx);
     auto _DrawThemeBackgroundEx_    = HookDef(DrawThemeBackgroundEx, MyDrawThemeBackgroundEx);
-
     auto _PatBlt_                   = HookDef(PatBlt, MyPatBlt);
 
     void HookAttachAll()
