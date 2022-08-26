@@ -1,5 +1,5 @@
 /*
-* Hookº¯Êı¼¯
+* Hookå‡½æ•°é›†
 *
 * Author: Maple
 * date: 2022-7-3 Create
@@ -26,16 +26,16 @@ struct DUIData
 };
 struct Config
 {
-    int effType = 0;        //Ğ§¹ûÀàĞÍ 0=Blur 1=Acrylic(Mica)
-    COLORREF blendColor = 0;//»ìºÏÑÕÉ«
+    int effType = 0;        //æ•ˆæœç±»å‹ 0=Blur 1=Acrylic(Mica)
+    COLORREF blendColor = 0;//æ··åˆé¢œè‰²
     bool smallborder = true;
 };
 
-std::unordered_map<DWORD, DUIData> m_DUIList;                  //dui¾ä±úÁĞ±í
-std::unordered_map<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //ÓÃÀ´¼ÇÂ¼win10 RibbonÇøÓòÊÇ·ñ»æÖÆ
-std::unordered_map<DWORD, bool> m_drawtextState;               //ÓÃÀ´¼ÇÂ¼drawText AlphaĞŞ¸´×´Ì¬
-HBRUSH m_clearBrush = 0;                                       //ÓÃÓÚÇå¿ÕDCµÄ»­Ë¢
-Config m_config;                                               //ÅäÖÃÎÄ¼ş
+std::unordered_map<DWORD, DUIData> m_DUIList;                  //duiå¥æŸ„åˆ—è¡¨
+std::unordered_map<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //ç”¨æ¥è®°å½•win10 RibbonåŒºåŸŸæ˜¯å¦ç»˜åˆ¶
+std::unordered_map<DWORD, bool> m_drawtextState;               //ç”¨æ¥è®°å½•drawText Alphaä¿®å¤çŠ¶æ€
+HBRUSH m_clearBrush = 0;                                       //ç”¨äºæ¸…ç©ºDCçš„ç”»åˆ·
+Config m_config;                                               //é…ç½®æ–‡ä»¶
 
 
 inline COLORREF M_RGBA(BYTE r, BYTE g, BYTE b, BYTE a)
@@ -51,18 +51,19 @@ void RefreshConfig()
     std::wstring path = GetCurDllDir() + L"\\config.ini";
     auto cfg = GetIniString(path, L"config", L"effect");
 
-    //Ğ§¹ûÀàĞÍ
+    //æ•ˆæœç±»å‹
     m_config.effType = _wtoi(cfg.c_str());
     if (m_config.effType != 0 && m_config.effType != 1)
         m_config.effType = 0;
 
-    //ÑÕÉ«RGBA
+    //é¢œè‰²RGBA
     auto color = [&path](std::wstring s) -> BYTE
     {
         int c = _wtoi(GetIniString(path, L"blend", s).c_str());
         if (c > 255) c = 255;
         else if (c < 0) c = 0;
 
+        //Micaæ•ˆæœä¸‹ å¦‚æœå¤§äº250å°†ä¼šå˜æˆå®Œå…¨ä¸é€æ˜çš„ç™½è‰² å› æ­¤é™åˆ¶æœ€é«˜249
         if (m_config.effType && c > 249)
             c = 249;
 
@@ -119,7 +120,7 @@ namespace Hook
         MH_Uninitialize();
     }
 
-    //ÊÇ·ñÎªduiÏß³Ì
+    //æ˜¯å¦ä¸ºduiçº¿ç¨‹
     bool IsDUIThread()
     {
         auto iter = m_DUIList.find(GetCurrentThreadId());
@@ -151,7 +152,7 @@ namespace Hook
             ClassName = GetWindowClassName(hWnd);
         }
 
-        //ĞŞ¸´BlurÏÂEditµÄAlpha
+        //ä¿®å¤Blurä¸‹Editçš„Alpha
         if (IsDUIThread()) {
             if (ConvertTolower(ClassName) == L"edit")
             {
@@ -163,16 +164,16 @@ namespace Hook
         //explorer window 
         if (ClassName == L"DirectUIHWND" && GetWindowClassName(hWndParent) == L"SHELLDLL_DefView")
         {
-            //¼ÌĞø²éÕÒ¸¸¼¶
+            //ç»§ç»­æŸ¥æ‰¾çˆ¶çº§
             HWND parent = GetParent(hWndParent);
             if (GetWindowClassName(parent) == L"ShellTabWindowClass")
             {
                 parent = GetParent(parent);
 
-                //ÉèÖÃBlur
+                //è®¾ç½®Blur
                 StartAero(parent, m_config.effType == 1, m_config.blendColor, m_config.blendColor != 0);
 
-                //¼ÇÂ¼µ½ÁĞ±íÖĞ Add to list
+                //è®°å½•åˆ°åˆ—è¡¨ä¸­ Add to list
                 DWORD tid = GetCurrentThreadId();
 
                 DUIData data;
@@ -182,7 +183,7 @@ namespace Hook
                 m_DUIList[tid] = data;
             }
         }
-        //µ¼º½Ê÷ÊÓÍ¼
+        //å¯¼èˆªæ ‘è§†å›¾
         else if (ClassName == L"SysTreeView32")
         {
             HWND parent = GetParent(hWndParent);//NamespaceTreeControl
@@ -199,7 +200,7 @@ namespace Hook
 
     BOOL MyDestroyWindow(HWND hWnd)
     {
-        //²éÕÒ²¢É¾³ıÁĞ±íÖĞµÄ¼ÇÂ¼
+        //æŸ¥æ‰¾å¹¶åˆ é™¤åˆ—è¡¨ä¸­çš„è®°å½•
         auto iter = m_DUIList.find(GetCurrentThreadId());
         if (iter != m_DUIList.end())
         {
@@ -212,7 +213,7 @@ namespace Hook
 
     HDC MyBeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint)
     {
-        //¿ªÊ¼»æÖÆDUI´°¿Ú
+        //å¼€å§‹ç»˜åˆ¶DUIçª—å£
         HDC hDC = _BeginPaint_.Org(hWnd, lpPaint);
 
         auto iter = m_DUIList.find(GetCurrentThreadId());
@@ -269,13 +270,13 @@ namespace Hook
             {
                 ret = _FillRect_.Org(hDC, lprc, hbr);
 
-                //Ë¢ĞÂÑÕÉ«Öµ
+                //åˆ·æ–°é¢œè‰²å€¼
                 if (iter->second.refresh)
                 {
                     SendMessageW(iter->second.hWnd, WM_THEMECHANGED, 0, 0);
                     iter->second.refresh = false;
                 }
-                //ÅĞ¶ÏÊ÷ÁĞ±íÑÕÉ«ÊÇ·ñ±»¸Ä±ä
+                //åˆ¤æ–­æ ‘åˆ—è¡¨é¢œè‰²æ˜¯å¦è¢«æ”¹å˜
                 if (iter->second.treeDraw)
                 {
                     COLORREF color = RGB(0, 0, 0);
@@ -288,7 +289,7 @@ namespace Hook
                 goto Next;
         }
     Next:
-        //Í¸Ã÷»¯ Windows 10 Ribbon ÔÚLightÄ£Ê½
+        //é€æ˜åŒ– Windows 10 Ribbon åœ¨Lightæ¨¡å¼
         auto ribiter = m_ribbonPaint.find(curThread);
         if (ribiter != m_ribbonPaint.end())
         {
@@ -310,9 +311,9 @@ namespace Hook
 
     BOOL MyPatBlt(HDC hdc, int x, int y, int w, int h, DWORD rop)
     {
-        //ĞŞ¸´Ñ¡Ôñ¾ØĞÎ¿òµÄAlpha
+        //ä¿®å¤é€‰æ‹©çŸ©å½¢æ¡†çš„Alpha
         if (IsDUIThread() && rop == PATCOPY) {
-            //¼ì²âµ÷ÓÃÏß³Ì
+            //æ£€æµ‹è°ƒç”¨çº¿ç¨‹
             static std::unordered_map<DWORD, bool> thList;
 
             DWORD curThread = GetCurrentThreadId();
@@ -320,21 +321,21 @@ namespace Hook
                 return _PatBlt_.Org(hdc, x, y, w, h, rop);
 
             thList.insert(std::make_pair(curThread, true));
-            //»ñÈ¡DCÑÕÉ«»­Ë¢
+            //è·å–DCé¢œè‰²ç”»åˆ·
             HBRUSH hbr = (HBRUSH)SelectObject(hdc, GetSysColorBrush(COLOR_WINDOW));
             LOGBRUSH lbr;
             GetObjectW(hbr, sizeof(lbr), &lbr);
 
-            //ÉèÖÃGDIP»­Ë¢ÑÕÉ«
+            //è®¾ç½®GDIPç”»åˆ·é¢œè‰²
             Gdiplus::SolidBrush brush(Gdiplus::Color::Transparent);
             brush.SetColor(Gdiplus::Color::MakeARGB(200, GetRValue(lbr.lbColor),
                 GetGValue(lbr.lbColor), GetBValue(lbr.lbColor)));
 
-            //Ê¹ÓÃGDIP»º³åÇø»æÖÆ
+            //ä½¿ç”¨GDIPç¼“å†²åŒºç»˜åˆ¶
             Gdiplus::Graphics gp(hdc);
             gp.FillRectangle(&brush, Gdiplus::Rect(x, y, w, h));
 
-            //ÉèÖÃ»ØÔ­»­Ë¢
+            //è®¾ç½®å›åŸç”»åˆ·
             SelectObject(hdc, hbr);
 
             thList.erase(curThread);
@@ -356,7 +357,7 @@ namespace Hook
         HPAINTBUFFER pbuffer = BeginBufferedPaint(hdc, pRc, BPBF_TOPDOWNDIB, &bpParam, &hDC);
         if (pbuffer && hDC && fun)
         {
-            //ÉèÖÃÔ­DCĞÅÏ¢
+            //è®¾ç½®åŸDCä¿¡æ¯
             SelectObject(hDC, GetCurrentObject(hdc, OBJ_FONT));
             SetBkMode(hDC, GetBkMode(hdc));
             SetBkColor(hDC, GetBkColor(hdc));
@@ -372,7 +373,7 @@ namespace Hook
         return false;
     }
 
-    //ĞŞ¸´DrawTextWµÄAlpha
+    //ä¿®å¤DrawTextWçš„Alpha
     int MyDrawTextW(HDC hdc, LPCWSTR lpchText, int cchText, LPRECT lprc, UINT format)
     {
         if ((format & DT_CALCRECT) || m_drawtextState.find(GetCurrentThreadId()) != m_drawtextState.end())
@@ -402,13 +403,13 @@ namespace Hook
         return hr;
     }
 
-    //ĞŞ¸´DrawTextExWµÄAlpha
+    //ä¿®å¤DrawTextExWçš„Alpha
     int MyDrawTextExW(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
     {
         static std::unordered_map<DWORD, bool> thList;
         DWORD curTh = GetCurrentThreadId();
 
-        //TreeView»æÖÆµÄÊ±ºò×îºóÒ»¸ö²ÎÊıÊÇNULL Òò´Ë¿ÉÒÔÖ±½ÓÓÃDrawText
+        //TreeViewç»˜åˆ¶çš„æ—¶å€™æœ€åä¸€ä¸ªå‚æ•°æ˜¯NULL å› æ­¤å¯ä»¥ç›´æ¥ç”¨DrawText
         if (!lpdtp && !(format & DT_CALCRECT) && thList.find(curTh) == thList.end()
             && m_drawtextState.find(GetCurrentThreadId()) == m_drawtextState.end()) {
 
@@ -420,7 +421,7 @@ namespace Hook
         return _DrawTextExW_.Org(hdc, lpchText, cchText, lprc, format, lpdtp);
     }
 
-    //ĞŞ¸´ExtTextOutWµÄAlpha
+    //ä¿®å¤ExtTextOutWçš„Alpha
     BOOL MyExtTextOutW(HDC hdc, int x, int y, UINT option, const RECT* lprect, LPCWSTR lpString, UINT c, const INT* lpDx)
     {
         std::wstring str;
@@ -464,7 +465,7 @@ namespace Hook
                     return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
                 };
 
-                //ºÏÅú»æÖÆÎÄ±¾
+                //åˆæ‰¹ç»˜åˆ¶æ–‡æœ¬
                 auto fun = [&](HDC hDC) {
                     HTHEME hTheme = OpenThemeData((HWND)0, L"Menu");
 
@@ -490,7 +491,7 @@ namespace Hook
                             }
                             else
                             {
-                                //ÏÈ»æÖÆÉÏÒ»Åú
+                                //å…ˆç»˜åˆ¶ä¸Šä¸€æ‰¹
                                 hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
 
                                 batch = false;
@@ -500,7 +501,7 @@ namespace Hook
                             }
                         }
 
-                        //×îºóÒ»Åú
+                        //æœ€åä¸€æ‰¹
                         if (i == c - 1)
                         {
                             hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
@@ -528,7 +529,7 @@ namespace Hook
 
     HDC MyCreateCompatibleDC(HDC hDC)
     {
-        //ÔÚ»æÖÆDUIÖ®Ç° »áµ÷ÓÃCreateCompatibleDC ÕÒµ½Ëü
+        //åœ¨ç»˜åˆ¶DUIä¹‹å‰ ä¼šè°ƒç”¨CreateCompatibleDC æ‰¾åˆ°å®ƒ
         HDC retDC = _CreateCompatibleDC_.Org(hDC);
         auto iter = m_DUIList.find(GetCurrentThreadId());
         if (iter != m_DUIList.end()) {
@@ -557,13 +558,13 @@ namespace Hook
         HRESULT ret = _GetThemeColor_.Org(hTheme, iPartId, iStateId, iPropId, pColor);
         std::wstring kname = GetThemeClassName(hTheme);
 
-        //½«Ö÷Òª¿Ø¼şµÄ±³¾°É«ÉèÖÃÎªºÚÉ« ÒÔ¹©APIÍ¸Ã÷»¯BlurĞ§¹û
+        //å°†ä¸»è¦æ§ä»¶çš„èƒŒæ™¯è‰²è®¾ç½®ä¸ºé»‘è‰² ä»¥ä¾›APIé€æ˜åŒ–Bluræ•ˆæœ
         if (iPropId == TMT_FILLCOLOR && IsDUIThread())
         {
-            //DUIÊÓÍ¼¡¢µ×²¿×´Ì¬À¸¡¢µ¼º½À¸
+            //DUIè§†å›¾ã€åº•éƒ¨çŠ¶æ€æ ã€å¯¼èˆªæ 
             if (((kname == L"ItemsView" || kname == L"ExplorerStatusBar" || kname == L"ExplorerNavPane")
                 && (iPartId == 0 && iStateId == 0))
-                //ReadingPaneÊÇÔ¤ÀÀÃæ°åµÄ±³¾°É«
+                //ReadingPaneæ˜¯é¢„è§ˆé¢æ¿çš„èƒŒæ™¯è‰²
                 || (kname == L"ReadingPane" && iPartId == 1 && iStateId == 0))//FILL Color
             {
                 *pColor = RGB(0, 0, 0);
@@ -572,7 +573,7 @@ namespace Hook
         return ret;
     }
 
-    //×ª»»ÎªDrawThemeTextExµ÷ÓÃ
+    //è½¬æ¢ä¸ºDrawThemeTextExè°ƒç”¨
     HRESULT MyDrawThemeText(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCTSTR pszText,
         int cchText, DWORD dwTextFlags, DWORD dwTextFlags2, LPCRECT pRect)
     {
@@ -585,7 +586,7 @@ namespace Hook
         return ret;
     }
 
-    //·ÀÖ¹DrawTextÀàAPIÄÚ²¿µİ¹éµ÷ÓÃ ²¢½øĞĞAlphaĞŞ¸´
+    //é˜²æ­¢DrawTextç±»APIå†…éƒ¨é€’å½’è°ƒç”¨ å¹¶è¿›è¡ŒAlphaä¿®å¤
     HRESULT MyDrawThemeTextEx(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCTSTR pszText,
         int cchText, DWORD dwTextFlags, LPCRECT pRect, const DTTOPTS* pOptions)
     {
@@ -630,7 +631,7 @@ namespace Hook
     {
         std::wstring kname = GetThemeClassName(hTheme);
 
-        //BlurÄ£Ê½ÏÂ Í¸Ã÷»¯ Header¡¢Rebar¡¢Ô¤ÀÀÃæ°å¡¢ÃüÁîÄ£¿é
+        //Bluræ¨¡å¼ä¸‹ é€æ˜åŒ– Headerã€Rebarã€é¢„è§ˆé¢æ¿ã€å‘½ä»¤æ¨¡å—
         if (kname == L"Header") {
             if ((iPartId == HP_HEADERITEM && iStateId == HIS_NORMAL)
                 || (iPartId == HP_HEADERITEM && iStateId == HIS_SORTEDNORMAL)
