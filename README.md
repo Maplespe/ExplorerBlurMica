@@ -5,7 +5,7 @@ Add background Blur effect or Acrylic (Mica for win11) effect to explorer for wi
 
 此项目使用[GNU v3开源许可证](/LICENSE)(This project uses [GNU V3 license](/LICENSE))
 
-本项目依赖于[minhook](https://github.com/m417z/minhook)(Dependent on[minhook](https://github.com/m417z/minhook))
+本项目依赖于[minhook](https://github.com/m417z/minhook)(Dependent on [minhook](https://github.com/m417z/minhook))
 ## 效果(Effects)
 * 可选Blur或Acrylic(win11 Mica)
 * 可以自定义背景混合颜色
