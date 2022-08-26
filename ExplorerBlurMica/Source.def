@@ -1,0 +1,6 @@
+LIBRARY "ExplorerBlurMica"
+EXPORTS
+DllGetClassObject PRIVATE
+DllCanUnloadNow PRIVATE
+DllRegisterServer PRIVATE
+DllUnregisterServer PRIVATE
