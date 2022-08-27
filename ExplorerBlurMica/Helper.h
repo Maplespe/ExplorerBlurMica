@@ -1,5 +1,5 @@
 /*
-* WinAPIÖúÊÖ
+* WinAPIåŠ©æ‰‹
 *
 * Author: Maple
 * date: 2021-7-13 Create
@@ -18,47 +18,47 @@
 #pragma comment(lib, "GdiPlus.lib")
 #pragma comment(lib, "uxtheme.lib")
 
-//»ñÈ¡µ±Ç°dllËùÔÚÄ¿Â¼
+//è·å–å½“å‰dllæ‰€åœ¨ç›®å½•
 extern std::wstring GetCurDllDir();
 
-//ÅĞ¶ÏÎÄ¼şÊÇ·ñ´æÔÚ
+//åˆ¤æ–­æ–‡ä»¶æ˜¯å¦å­˜åœ¨
 extern bool FileIsExist(std::wstring FilePath);
 
-//»ñÈ¡´°¿Ú±êÌâ
+//è·å–çª—å£æ ‡é¢˜
 extern std::wstring GetWindowTitle(HWND hWnd);
 
-//»ñÈ¡´°¿ÚÀàÃû
+//è·å–çª—å£ç±»å
 extern std::wstring GetWindowClassName(HWND hWnd);
 
-//¶ÁÈ¡ÅäÖÃÎÄ¼şÄÚÈİ
+//è¯»å–é…ç½®æ–‡ä»¶å†…å®¹
 extern std::wstring GetIniString(std::wstring FilePath, std::wstring AppName, std::wstring KeyName);
 
-//±È½ÏÑÕÉ«
+//æ¯”è¾ƒé¢œè‰²
 extern bool CompareColor(COLORREF color1, COLORREF color2);
 
-//×ª»»µ½Ğ¡Ğ´
+//è½¬æ¢åˆ°å°å†™
 extern std::wstring ConvertTolower(std::wstring str);
 
-/*¶ÔÖ¸¶¨´°¿Ú¸½¼ÓAeroĞ§¹û
-* @param hwnd	 - ´°¿Ú¾ä±ú
-* @param win10	 - ÊÇ·ñÊ¹ÓÃwin10º¯Êı
-* @param Acrylic - ÊÇ·ñÆôÓÃÑÇ¿ËÁ¦Ğ§¹û(win10 1803ÒÔÉÏ¿ÉÓÃ)
-* @param color	 - ´°¿Ú±³¾°»ìºÏÉ«
+/*å¯¹æŒ‡å®šçª—å£é™„åŠ Aeroæ•ˆæœ
+* @param hwnd	 - çª—å£å¥æŸ„
+* @param win10	 - æ˜¯å¦ä½¿ç”¨win10å‡½æ•°
+* @param Acrylic - æ˜¯å¦å¯ç”¨äºšå…‹åŠ›æ•ˆæœ(win10 1803ä»¥ä¸Šå¯ç”¨)
+* @param color	 - çª—å£èƒŒæ™¯æ··åˆè‰²
 */
 extern void StartAero(HWND hwnd, bool Acrylic = false, COLORREF color = 0, bool blend = false);
 
-//»ñÈ¡Ö÷ÌâÀàÃû
+//è·å–ä¸»é¢˜ç±»å
 extern std::wstring GetThemeClassName(HTHEME hTheme);
 
-//¼ì²éº¯Êıµ÷ÓÃÕßÔ´
+//æ£€æŸ¥å‡½æ•°è°ƒç”¨è€…æº
 bool CheckCaller(HMODULE caller, void* address = _ReturnAddress());
 bool CheckCaller(LPCWSTR caller, void* address = _ReturnAddress());
 
-//¼ÆËã Windows 10 Ribbon DPI¸ß¶È
-UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal = true);
+//è®¡ç®— Windows 10 Ribbon DPIé«˜åº¦
+UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal = true, bool offset = true);
 
-//¶ÁÈ¡×¢²á±íSZÖµ
+//è¯»å–æ³¨å†Œè¡¨SZå€¼
 extern std::wstring RegGetSZ(HKEY hKey, LPCWSTR SubKey, LPCWSTR KeyName);
 
-//Ë¢ĞÂWindows10´°¿ÚBlur´°¿Ú±ß¿òÉèÖÃ
+//åˆ·æ–°Windows10çª—å£Blurçª—å£è¾¹æ¡†è®¾ç½®
 void RefreshWin10BlurFrame(bool blurType);
