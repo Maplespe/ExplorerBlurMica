@@ -1,5 +1,5 @@
 /*
-* WinAPIÖúÊÖ
+* WinAPIåŠ©æ‰‹
 *
 * Author: Maple
 * date: 2021-7-13 Create
@@ -100,10 +100,10 @@ const pSetWindowCompositionAttribute SetWindowCompositionAttribute
 
 void StartAero(HWND hwnd, bool Acrylic, COLORREF color, bool blend)
 {
-	//win10Î´¹«¿ªAPI https://hack.jp/?p=245
+	//win10æœªå…¬å¼€API https://hack.jp/?p=245
 	if (SetWindowCompositionAttribute)
 	{
-		/*ÑÇ¿ËÁ¦Ð§¹û²ÎÊý
+		/*äºšå…‹åŠ›æ•ˆæžœå‚æ•°
 		https://github.com/Hxmg/Win32AcrylicBlur
 		*/
 		ACCENTPOLICY policy = { Acrylic == false ? 3 : 4, 0, 0, 0 };
@@ -187,7 +187,7 @@ bool CheckCaller(LPCWSTR caller, void* address)
 	return CheckCaller(GetModuleHandleW(caller), address);
 }
 
-UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal)
+UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal, bool offsets)
 {
 	static auto GetWindowDPI = [](HWND hwnd) -> UINT
 	{
@@ -216,13 +216,19 @@ UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal)
 	if (scale != 1.f) {
 		if (!normal) {
 			float offset = round(1.5f * scale);
-			float height = round((float)src * scale) - offset;
+			float height = round((float)src * scale);
+			if (offsets)
+				height -= offset;
+			else if (scale == 2.f)
+				height += 2;
+			else if(scale < 1.7)
+				height -= 1;
 
 			return (UINT)height;
 		}
 		else
 		{
-			return UINT(scale * (float)src);
+			return (UINT)round(scale * (float)src);
 		}
 	}
 	return src;
@@ -257,7 +263,7 @@ std::wstring RegGetSZ(HKEY hKey, LPCWSTR SubKey, LPCWSTR KeyName)
 
 	LSTATUS status = RegOpenKeyExW(hKey, SubKey, 0, KEY_READ, &tkey);
 
-	//ÒÔ±¸·Ý»¹Ô­¼¶±ðÈ¨ÏÞÔÙÖØÊÔ
+	//ä»¥å¤‡ä»½è¿˜åŽŸçº§åˆ«æƒé™å†é‡è¯•
 	if (status != ERROR_SUCCESS)
 	{
 		EnablePriviledge(SE_BACKUP_NAME);
