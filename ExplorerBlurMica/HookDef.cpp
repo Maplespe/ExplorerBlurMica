@@ -297,7 +297,8 @@ namespace Hook
                 GetWindowRect(ribiter->second.first, &rcWnd);
 
                 if (lprc->bottom == CalcRibbonHeightForDPI(ribiter->second.first, 26, false)
-                    || lprc->bottom == CalcRibbonHeightForDPI(ribiter->second.first, 23, false)
+                    || lprc->bottom == CalcRibbonHeightForDPI(ribiter->second.first, 23, false, false)
+                    || lprc->bottom == 1
                     || (lprc->bottom - lprc->top == CalcRibbonHeightForDPI(ribiter->second.first, 1)
                         && (rcWnd.right - rcWnd.left) == lprc->right))
                 {
