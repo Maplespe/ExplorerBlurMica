@@ -72,7 +72,7 @@ rgba 255 255 255 160
 
 From [Release](https://github.com/Maplespe/ExplorerBlurMica/releases)Page download the compiled program
 
-After decompression, run '`register.cmd' as an administrator
+After decompression, run '`register.cmd`' as an administrator
 
 You can also manually use CMD to register or uninstall
 > `regsvr32 (/u) "you path/ExplorerBgTool.dll"`
