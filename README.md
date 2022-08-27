@@ -10,12 +10,12 @@ Add background Blur effect or Acrylic (Mica for win11) effect to explorer for wi
 * 可选Blur或Acrylic(win11 Mica)
 * 可以自定义背景混合颜色
 
-请注意：效果为Blur时两个窗口的重叠区域在移动中可能会闪烁 这是api问题 我暂时无法解决 建议使用Acrylic或Mica
+请注意：效果为Blur时两个窗口的重叠区域在移动中可能会闪烁 这是api问题 我暂时无法解决 建议使用Acrylic或Mica(仅Windows 11)
 #
 * Optional blur or Acrylic (Win11 Mica)
 * You can customize the background blend color
 
-Please note: When the effect is blur, the overlapping area of the two windows may flicker when moving. This is an api problem and I can't solve it for the time being. It is recommended to use Acrylic or Mica
+Please note: When the effect is blur, the overlapping area of the two windows may flicker when moving. This is an api problem and I can't solve it for the time being. It is recommended to use Acrylic or Mica(Only Windows 11)
 ## 目录
 1. [预览 (Overview)](#预览-overview)
 2. [使用方法 (How to use)](#使用方法-how-to-use)
