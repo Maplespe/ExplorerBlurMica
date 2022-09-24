@@ -67,7 +67,7 @@ rgba 255 255 255 160
 如果要卸载 以同样方式运行"`uninstall.cmd`"
 
 也可以手动使用命令提示符注册或卸载
-> `regsvr32 (/u) "你的路径/ExplorerBgTool.dll"`
+> `regsvr32 (/u) "你的路径/ExplorerBlurMica.dll"`
 
 如果出现任何问题导致崩溃 可以按住`ESC`键再打开文件资源管理器窗口
 
@@ -78,7 +78,7 @@ From [Release](https://github.com/Maplespe/ExplorerBlurMica/releases)Page downlo
 After decompression, run '`register.cmd`' as an administrator
 
 You can also manually use CMD to register or uninstall
-> `regsvr32 (/u) "you path/ExplorerBgTool.dll"`
+> `regsvr32 (/u) "you path/ExplorerBlurMica.dll"`
 
 If there is any problem causing a crash, you can press and hold the `ESC` key to open the explorer window
 ## 配置文件 (Config)
