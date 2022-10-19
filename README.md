@@ -3,7 +3,7 @@ Add background Blur effect or Acrylic (Mica for win11) effect to explorer for wi
 
 给文件资源管理器添加背景模糊效果或Acrylic(win11为Mica)效果 适用于win10和win11
 
-此项目使用[GNU v3开源许可证](/LICENSE)(This project uses [GNU V3 license](/LICENSE))
+此项目使用[LGNU v3开源许可证](/COPYING.LESSER)(This project uses [LGNU V3 license](/COPYING.LESSER))
 
 本项目依赖于[minhook](https://github.com/m417z/minhook)(Dependent on [minhook](https://github.com/m417z/minhook))
 ## 效果(Effects)
