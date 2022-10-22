@@ -108,6 +108,7 @@ namespace Hook {
     extern HRESULT MyGetThemeColor(HTHEME, int, int, int, COLORREF*);
     extern HRESULT MyDrawThemeText(HTHEME, HDC, int, int, LPCTSTR, int, DWORD, DWORD, LPCRECT);
     extern HRESULT MyDrawThemeTextEx(HTHEME, HDC, int, int, LPCTSTR, int, DWORD, LPCRECT, const DTTOPTS*);
+    extern HRESULT MyDrawThemeBackground(HTHEME, HDC, int, int, LPCRECT, LPCRECT);
     extern HRESULT MyDrawThemeBackgroundEx(HTHEME, HDC, int, int, LPCRECT, const DTBGOPTS*);
 
     template<typename T>

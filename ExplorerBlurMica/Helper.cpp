@@ -98,17 +98,27 @@ const HINSTANCE hModule_User32 = LoadLibraryW(L"user32.dll");
 const pSetWindowCompositionAttribute SetWindowCompositionAttribute
 = (pSetWindowCompositionAttribute)GetProcAddress(hModule_User32, "SetWindowCompositionAttribute");
 
-void StartAero(HWND hwnd, bool Acrylic, COLORREF color, bool blend)
+void StartAero(HWND hwnd, int type, COLORREF color, bool blend)
 {
 	//win10未公开API https://hack.jp/?p=245
 	if (SetWindowCompositionAttribute)
 	{
-		/*亚克力效果参数
-		https://github.com/Hxmg/Win32AcrylicBlur
-		*/
-		ACCENTPOLICY policy = { Acrylic == false ? 3 : 4, 0, 0, 0 };
-		policy.nColor = blend ? color : 0xff;
-		policy.nFlags = blend ? 3 : 1;
+		ACCENTPOLICY policy = { type == 0 ? 3 : 4, 0, 0, 0 };
+		if (blend)
+		{
+			policy.nFlags = 3;
+			policy.nColor = color;
+		}
+		else if (type == 1)
+		{
+			policy.nFlags = 1;
+			policy.nColor = 0x00FFFFFF;
+		}
+		else
+		{
+			policy.nFlags = 0;
+			policy.nColor = 0;
+		}
 		WINCOMPATTRDATA data = { 19, &policy, sizeof(ACCENTPOLICY) };
 		SetWindowCompositionAttribute(hwnd, &data);
 	}

@@ -42,10 +42,10 @@ extern std::wstring ConvertTolower(std::wstring str);
 /*对指定窗口附加Aero效果
 * @param hwnd	 - 窗口句柄
 * @param win10	 - 是否使用win10函数
-* @param Acrylic - 是否启用亚克力效果(win10 1803以上可用)
+* @param type	 - 效果类型 0=Blur 1=Acrylic 2=Mica (win10 1803以上可用)
 * @param color	 - 窗口背景混合色
 */
-extern void StartAero(HWND hwnd, bool Acrylic = false, COLORREF color = 0, bool blend = false);
+extern void StartAero(HWND hwnd, int type, COLORREF color = 0, bool blend = false);
 
 //获取主题类名
 extern std::wstring GetThemeClassName(HTHEME hTheme);

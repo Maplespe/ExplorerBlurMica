@@ -1,23 +1,18 @@
 # ExplorerBlurMica
-Add background Blur effect or Acrylic (Mica for win11) effect to explorer for win10 and win11
+Add background Blur effect or Acrylic or Mica effect to explorer for win10 and win11
 
-给文件资源管理器添加背景模糊效果或Acrylic(win11为Mica)效果 适用于win10和win11
+给文件资源管理器添加背景模糊效果或Acrylic、Mica效果 适用于win10和win11
 
 此项目使用[LGNU v3开源许可证](/COPYING.LESSER)(This project uses [LGNU V3 license](/COPYING.LESSER))
 
 本项目依赖于[minhook](https://github.com/m417z/minhook)(Dependent on [minhook](https://github.com/m417z/minhook))
 ## 效果(Effects)
-* 可选Blur或Acrylic(win11 Mica)
+* 可选Blur或Acrylic、Mica
 * 可以自定义背景混合颜色
 
-(仅Windows 11)请注意：效果为Blur时两个窗口的重叠区域在移动中可能会闪烁 建议使用Acrylic或Mica
-该问题将在下一版本的工具箱更新后同步更新修复
 #
-* Optional blur or Acrylic (Win11 Mica)
+* Optional blur or Acrylic or Mica
 * You can customize the background blend color
-
-(Only Windows 11)Please note: When the effect is blur, the overlapping area of the two windows may flicker when moving. It is recommended to use Acrylic or Mica
-This problem will be fixed in the next update of the toolbox
 ## 目录
 1. [预览 (Overview)](#预览-overview)
 2. [使用方法 (How to use)](#使用方法-how-to-use)
@@ -28,27 +23,26 @@ This problem will be fixed in the next update of the toolbox
 ### Windows 11
 ```ini
 effect=1
-rgba 255 255 255 160
+rgba 179 117 245 100
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/171504.png)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/r179g117b245a100.jpg)
 
+Dark Mode
+```ini
+effect=2
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/22h2mica.jpg)
+
+Blur效果仅限22H2之前(Blur effect is only available before 22H2)
 ```ini
 effect=0
-rgba 210 111 151 50
+rgba 255 255 255 160
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/171955.png)
-```
-*已知问题：win11在亮色模式下最左边有白条 (该问题将在下一版本的工具箱更新后同步更新修复)
-*Known problem: win11 has a white bar on the left in light color mode
-This problem will be fixed in the next update of the toolbox
-```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/e0rgb255a160.jpg)
+
 ### Windows 10
 ```ini
 effect=1
-rgba 255 255 255 160
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/172402.jpg)
-```ini
 rgba 80 155 214 100
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/172503.jpg)
@@ -84,8 +78,8 @@ If there is any problem causing a crash, you can press and hold the `ESC` key to
 ## 配置文件 (Config)
 ``` ini
 [config]
-#效果类型 0=Blur 1=Acrylic(注意 在Windows 11下是Mica效果)
-#Effect type 0=blur 1=acrylic(note that mica effect is used in Windows 11)
+#效果类型 0=Blur 1=Acrylic 2=Mica (Mica仅在win11可用 Blur效果仅在22H2之前可用)
+#Effect type 0=blur 1=acrylic(Mica is only available for win11 Blur effect is only available before 22H2)
 effect=1
 #在windows10因为API会把窗口边框的阴影也模糊掉 程序默认会调整窗口为窄边框 如果你不需要 设置为false
 #In windows10, because the API will blur the shadow of the window border, the program will adjust the window to a narrow border by default. If you don't need it, set it to false

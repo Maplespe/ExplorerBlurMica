@@ -9,6 +9,10 @@
 #include <unordered_map>
 #include <functional>
 #include <vssym32.h>
+#include <dwmapi.h>
+#include <mutex>
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "Comctl32.lib")    //Win32 Controls
 
 struct DUIData
 {
@@ -26,14 +30,63 @@ struct DUIData
 };
 struct Config
 {
-    int effType = 0;        //效果类型 0=Blur 1=Acrylic(Mica)
+    int effType = 0;        //效果类型 0=Blur 1=Acrylic 2=Mica
     COLORREF blendColor = 0;//混合颜色
     bool smallborder = true;
 };
 
-std::unordered_map<DWORD, DUIData> m_DUIList;                  //dui句柄列表
-std::unordered_map<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //用来记录win10 Ribbon区域是否绘制
-std::unordered_map<DWORD, bool> m_drawtextState;               //用来记录drawText Alpha修复状态
+//线程安全的hashmap
+template<typename T, typename T1>
+class hashMap
+{
+public:
+    hashMap() = default;
+
+    auto find(T _name)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_map.find(_name);
+    }
+
+    template <typename Args>
+    auto erase(Args&& _it)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_map.erase(_it);
+    }
+
+    template <typename Args>
+    auto insert(Args&& _value)
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_map.insert(_value);
+    }
+
+    auto& operator[](const T& _value)
+    {
+        return m_map[_value];
+    }
+
+    auto clear()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_map.clear();
+    }
+
+    auto end()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        return m_map.end();
+    }
+
+private:
+    std::mutex m_mutex;
+    std::unordered_map<T, T1> m_map;
+};
+
+hashMap<DWORD, DUIData> m_DUIList;                  //dui句柄列表
+hashMap<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //用来记录win10 Ribbon区域是否绘制
+hashMap<DWORD, bool> m_drawtextState;               //用来记录drawText Alpha修复状态
 HBRUSH m_clearBrush = 0;                                       //用于清空DC的画刷
 Config m_config;                                               //配置文件
 
@@ -41,6 +94,11 @@ Config m_config;                                               //配置文件
 inline COLORREF M_RGBA(BYTE r, BYTE g, BYTE b, BYTE a)
 {
     return RGB(r, g, b) | (a << 24);
+}
+
+inline BYTE M_GetAValue(COLORREF rgba)
+{
+    return BYTE(ULONG(rgba >> 24) & 0xff);
 }
 
 void RefreshConfig()
@@ -53,8 +111,12 @@ void RefreshConfig()
 
     //效果类型
     m_config.effType = _wtoi(cfg.c_str());
-    if (m_config.effType != 0 && m_config.effType != 1)
+    if (m_config.effType < 0 || m_config.effType > 2)
         m_config.effType = 0;
+
+    //22000以后不支持Blur效果
+    if (m_config.effType == 0 && g_sysBuildNumber > 22000)
+        m_config.effType = 1;
 
     //颜色RGBA
     auto color = [&path](std::wstring s) -> BYTE
@@ -63,13 +125,16 @@ void RefreshConfig()
         if (c > 255) c = 255;
         else if (c < 0) c = 0;
 
-        //Mica效果下 如果大于250将会变成完全不透明的白色 因此限制最高249
-        if (m_config.effType && c > 249)
-            c = 249;
-
         return BYTE(c);
     };
-    m_config.blendColor = M_RGBA(color(L"r"), color(L"g"), color(L"b"), color(L"a"));
+    auto& c = m_config.blendColor;
+    c = M_RGBA(color(L"r"), color(L"g"), color(L"b"), color(L"a"));
+
+    //纯黑或者纯白alpha会失效 限制最小或最大值
+    if (GetRValue(c) == 255 && GetGValue(c) == 255 && GetBValue(c) == 255)
+        c = M_RGBA(249, 249, 249, M_GetAValue(c));
+    else if (GetRValue(c) == 0 && GetGValue(c) == 0 && GetBValue(c) == 0)
+        c = M_RGBA(40, 40, 40, M_GetAValue(c));
 
     m_config.smallborder = GetIniString(path, L"config", L"smallBorder") == L"false" ? false : true;
 
@@ -92,6 +157,7 @@ namespace Hook
     auto _GetThemeColor_            = HookDef(GetThemeColor, MyGetThemeColor);
     auto _DrawThemeText_            = HookDef(DrawThemeText, MyDrawThemeText);
     auto _DrawThemeTextEx_          = HookDef(DrawThemeTextEx, MyDrawThemeTextEx);
+    auto _DrawThemeBackground_      = HookDef(DrawThemeBackground, MyDrawThemeBackground);
     auto _DrawThemeBackgroundEx_    = HookDef(DrawThemeBackgroundEx, MyDrawThemeBackgroundEx);
     auto _PatBlt_                   = HookDef(PatBlt, MyPatBlt);
 
@@ -109,6 +175,11 @@ namespace Hook
         _GetThemeColor_.Attach();
         _DrawThemeText_.Attach();
         _DrawThemeTextEx_.Attach();
+
+        //修复win11暗黑模式下地址栏不透明
+        if (g_sysBuildNumber >= 22000)
+            _DrawThemeBackground_.Attach();
+
         _DrawThemeBackgroundEx_.Attach();
         _PatBlt_.Attach();
     }
@@ -124,6 +195,132 @@ namespace Hook
     {
         auto iter = m_DUIList.find(GetCurrentThreadId());
         return iter != m_DUIList.end();
+    }
+
+    //刷新22H2的窗口标题栏区域
+    void OnWindowSize(HWND hWnd, int newHeight)
+    {
+        MARGINS margin = { -1 };
+        if (M_GetAValue(m_config.blendColor) != 0 && m_config.effType == 1) {
+            margin.cyTopHeight = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(hWnd)) + 10;
+        }
+        else
+        {
+            margin = { 0 };
+            margin.cyTopHeight = newHeight;
+        }
+        DwmExtendFrameIntoClientArea(hWnd, &margin);
+        DwmFlush();
+    }
+
+    //设置窗口效果
+    void SetWindowBlur(HWND hWnd)
+    {
+        bool isBlend = M_GetAValue(m_config.blendColor) != 0;
+        if (g_sysBuildNumber >= 22000)
+        {
+            if (g_sysBuildNumber >= 22500)
+            {
+                RECT pRect;
+                GetWindowRect(hWnd, &pRect);
+                OnWindowSize(hWnd, pRect.bottom - pRect.top);
+                if (m_config.effType == 1)
+                {
+                    //禁用winrt私有云母合成效果
+                    int type = 0;
+                    DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+
+                    //22621.655
+                    DWM_BLURBEHIND blur = { 0 };
+                    blur.dwFlags = 1;
+                    blur.fEnable = 1;
+                    DwmEnableBlurBehindWindow(hWnd, &blur);
+
+                    if (isBlend)
+                        StartAero(hWnd, 1, m_config.blendColor, true);
+                    else
+                    {
+                        DWM_SYSTEMBACKDROP_TYPE type1 = DWMSBT_TRANSIENTWINDOW;
+                        DwmSetWindowAttribute(hWnd, DWMWA_SYSTEMBACKDROP_TYPE, &type1, sizeof(type1));
+                    }
+                }
+                else
+                {
+                    //启用私有云母效果
+                    int type = 1;
+                    DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+                }
+                return;
+            }
+
+            switch (m_config.effType)
+            {
+                case 0:
+                {
+                    int type = 0;
+                    DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+
+                    StartAero(hWnd, 0, m_config.blendColor, isBlend);
+                    break;
+                }
+                case 1:
+                {
+                    //取消标题栏的Mica效果
+                    int type = 0;
+                    HRESULT hr = DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+
+                    StartAero(hWnd, 1, m_config.blendColor, isBlend);
+
+                    //设置标题栏颜色
+                    COLORREF color = m_config.blendColor;
+                    DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &color, sizeof(color));
+                    break;
+                }
+            case 2:
+                StartAero(hWnd, 2, 0, false);
+            }
+        }
+        else
+            StartAero(hWnd, m_config.effType == 1 ? 0 : 1, m_config.blendColor, isBlend);
+    }
+
+    //窗口子类化
+    LRESULT WINAPI MyWndSubProc(HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+    {
+        if (message == WM_SIZE)
+        {
+            int height = HIWORD(lparam);
+            OnWindowSize(hWnd, height);
+        }
+        else if (message == WM_NCCALCSIZE)
+        {
+            if (!lparam)
+                return DefSubclassProc(hWnd, message, wparam, lparam);
+
+            UINT dpi = GetDpiForWindow(hWnd);
+
+            int frameX = GetSystemMetricsForDpi(SM_CXFRAME, dpi);
+            int frameY = GetSystemMetricsForDpi(SM_CYFRAME, dpi);
+            int padding = GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpi);
+
+            NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*)lparam;
+
+            params->rgrc->right -= frameX + padding;
+            params->rgrc->left += frameX + padding;
+            params->rgrc->bottom -= frameY + padding;
+
+            return 0;
+        }
+        //22H2 22621.655 多标签页失去和获取焦点需要刷新
+        else if (message == WM_ACTIVATE)
+        {
+            auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
+            RECT pRect;
+            GetWindowRect(hWnd, &pRect);
+            OnWindowSize(hWnd, pRect.bottom - pRect.top);
+            return ret;
+        }
+        return DefSubclassProc(hWnd, message, wparam, lparam);
     }
 
     HWND MyCreateWindowExW(
@@ -170,7 +367,13 @@ namespace Hook
                 parent = GetParent(parent);
 
                 //设置Blur
-                StartAero(parent, m_config.effType == 1, m_config.blendColor, m_config.blendColor != 0);
+                SetWindowBlur(parent);
+
+                //22H2
+                if (g_sysBuildNumber >= 22500)
+                {
+                    SetWindowSubclass(parent, MyWndSubProc, 0, (DWORD_PTR)0);
+                }
 
                 //记录到列表中 Add to list
                 DWORD tid = GetCurrentThreadId();
@@ -273,6 +476,13 @@ namespace Hook
                 if (iter->second.refresh)
                 {
                     SendMessageW(iter->second.hWnd, WM_THEMECHANGED, 0, 0);
+
+                    //win11 22621.655 多标签页 第一次打开页面需要刷新
+                    if (g_sysBuildNumber >= 22600)
+                    {
+                        SetWindowBlur(iter->second.mainWnd);
+                    }
+
                     iter->second.refresh = false;
                 }
                 //判断树列表颜色是否被改变
@@ -565,7 +775,9 @@ namespace Hook
             if (((kname == L"ItemsView" || kname == L"ExplorerStatusBar" || kname == L"ExplorerNavPane")
                 && (iPartId == 0 && iStateId == 0))
                 //ReadingPane是预览面板的背景色
-                || (kname == L"ReadingPane" && iPartId == 1 && iStateId == 0))//FILL Color
+                || (kname == L"ReadingPane" && iPartId == 1 && iStateId == 0)//FILL Color
+                || (kname == L"ProperTree" && iPartId == 2 && iStateId == 0) //DirectUIHWND 树属性视图的背景色
+                )
             {
                 *pColor = RGB(0, 0, 0);
             }
@@ -618,6 +830,23 @@ namespace Hook
             ret = _DrawThemeTextEx_.Org(hTheme, hdc, iPartId, iStateId, pszText, cchText, dwTextFlags, (LPRECT)pRect, pOptions);
         }
         return ret;
+    }
+
+    HRESULT MyDrawThemeBackground(HTHEME  hTheme,
+        HDC     hdc,
+        int     iPartId,
+        int     iStateId,
+        LPCRECT pRect,
+        LPCRECT pClipRect)
+    {
+        std::wstring kname = GetThemeClassName(hTheme);
+
+        if (kname == L"Rebar" && (iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
+        {
+            return S_OK;
+        }
+
+        return _DrawThemeBackground_.Org(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
     }
 
     HRESULT MyDrawThemeBackgroundEx(
