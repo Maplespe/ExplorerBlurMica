@@ -177,7 +177,7 @@ namespace Hook
         _DrawThemeTextEx_.Attach();
 
         //修复win11暗黑模式下地址栏不透明
-        if (g_sysBuildNumber >= 22000)
+        //if (g_sysBuildNumber >= 22000)
             _DrawThemeBackground_.Attach();
 
         _DrawThemeBackgroundEx_.Attach();
@@ -281,7 +281,7 @@ namespace Hook
             }
         }
         else
-            StartAero(hWnd, m_config.effType == 1 ? 0 : 1, m_config.blendColor, isBlend);
+            StartAero(hWnd, m_config.effType, m_config.blendColor, isBlend);
     }
 
     //窗口子类化
