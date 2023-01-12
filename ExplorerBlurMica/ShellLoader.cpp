@@ -14,6 +14,79 @@ long g_cDllRef = 0;
 const std::wstring CLSID_SHELL_BHO_STR = L"{B44BD3C8-E597-4E08-AE43-246CE24698E7}";
 const CLSID CLSID_SHELL_BHO = { 0xb44bd3c8, 0xe597, 0x4e08, { 0xae, 0x43, 0x24, 0x6c, 0xe2, 0x46, 0x98, 0xe7 } };
 
+#pragma region IDispatch
+
+CIDispatch::~CIDispatch()
+{
+}
+
+STDMETHODIMP CIDispatch::QueryInterface(REFIID riid, void** ppv)
+{
+	if (riid == IID_IUnknown || riid == DIID_DWebBrowserEvents2)
+		*ppv = static_cast<CIDispatch*>(this);
+	else if (riid == IID_IDispatch)
+		*ppv = static_cast<IDispatch*>(this);
+	else
+		return E_NOINTERFACE;
+	AddRef();
+	return S_OK;
+}
+
+ULONG __stdcall CIDispatch::AddRef()
+{
+	InterlockedIncrement(&g_cDllRef);
+	return InterlockedIncrement(&m_ref);
+}
+
+ULONG __stdcall CIDispatch::Release()
+{
+	int tmp = InterlockedDecrement(&m_ref);
+	if (tmp == 0)
+		delete this;
+	InterlockedDecrement(&g_cDllRef);
+	return tmp;
+}
+
+STDMETHODIMP CIDispatch::Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams, VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr)
+{
+	if (!pDispParams)
+		return E_INVALIDARG;
+
+	switch (dispIdMember)
+	{
+	case DISPID_BEFORENAVIGATE2:
+		break;
+	case DISPID_NAVIGATECOMPLETE2:
+		break;
+	case DISPID_DOCUMENTCOMPLETE:
+	{
+		std::wstring path = (wchar_t*)pDispParams->rgvarg->pvarVal->bstrVal;
+		if (path != m_lastpath)
+		{
+			m_lastpath = path;
+			OnDocComplete(path, GetCurrentThreadId());
+		}
+	}
+	break;
+	case DISPID_DOWNLOADBEGIN:
+		break;
+	case DISPID_DOWNLOADCOMPLETE:
+		break;
+	case DISPID_NEWWINDOW2:
+		break;
+	case DISPID_WINDOWREGISTERED:
+		break;
+	case DISPID_ONQUIT:
+		break;
+	default:
+		break;
+	}
+
+	return S_OK;
+}
+
+#pragma endregion
+
 #pragma region CObjectWithSite
 
 CObjectWithSite::CObjectWithSite()
@@ -60,13 +133,34 @@ STDMETHODIMP CObjectWithSite::SetSite(IUnknown* pUnkSite)
 	HRESULT hr = pUnkSite->QueryInterface(IID_IWebBrowser2, (void**)&m_web);
 	if (FAILED(hr))
 		ReleaseRes();
+
+	IConnectionPointContainer* cpoint = nullptr;
+
+	hr = m_web->QueryInterface(IID_IConnectionPointContainer, (void**)&cpoint);
+	if (FAILED(hr)) return E_FAIL;
+
+	hr = cpoint->FindConnectionPoint(DIID_DWebBrowserEvents2, &m_cpoint);
+	if (FAILED(hr))
+	{
+		cpoint->Release();
+		return E_FAIL;
+	}
+
+	m_cpoint->Advise((IUnknown*)new CIDispatch(), &m_cookie);
+
 	return hr;
 }
 
 void CObjectWithSite::ReleaseRes()
 {
 	if (m_web) m_web->Release();
-	m_web = 0;
+	if (m_cpoint)
+	{
+		m_cpoint->Unadvise(m_cookie);
+		m_cpoint->Release();
+	}
+	m_web = nullptr;
+	m_cpoint = nullptr;
 }
 
 #pragma endregion

@@ -6,11 +6,13 @@
 * Copyright winmoes.com
 */
 #include "HookDef.h"
+#include "ShellLoader.h"
 #include <unordered_map>
 #include <functional>
 #include <vssym32.h>
 #include <dwmapi.h>
 #include <mutex>
+#include <iostream>
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "Comctl32.lib")    //Win32 Controls
 
@@ -27,6 +29,7 @@ struct DUIData
     SIZE size = { 0,0 };
     bool treeDraw = false;
     bool refresh = true;
+    std::wstring path; //当前打开路径
 };
 struct Config
 {
@@ -87,8 +90,8 @@ private:
 hashMap<DWORD, DUIData> m_DUIList;                  //dui句柄列表
 hashMap<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //用来记录win10 Ribbon区域是否绘制
 hashMap<DWORD, bool> m_drawtextState;               //用来记录drawText Alpha修复状态
-HBRUSH m_clearBrush = 0;                                       //用于清空DC的画刷
-Config m_config;                                               //配置文件
+HBRUSH m_clearBrush = 0;                            //用于清空DC的画刷
+Config m_config;                                    //配置文件
 
 
 inline COLORREF M_RGBA(BYTE r, BYTE g, BYTE b, BYTE a)
@@ -141,6 +144,14 @@ void RefreshConfig()
     RefreshWin10BlurFrame(m_config.smallborder);
 }
 
+void OnDocComplete(std::wstring path, DWORD threadID)
+{
+    //std::wcout << L"path[" << threadID << L"] " << path << L"\n";
+    auto iter = m_DUIList.find(threadID);
+    if (iter != m_DUIList.end())
+        iter->second.path = path;
+}
+
 namespace Hook
 {
     int hookIndex = 0;
@@ -182,6 +193,15 @@ namespace Hook
 
         _DrawThemeBackgroundEx_.Attach();
         _PatBlt_.Attach();
+
+#ifdef _DEBUG
+        AllocConsole();
+        FILE* pOut = NULL;
+        freopen_s(&pOut, "conout$", "w", stdout);
+        freopen_s(&pOut, "conout$", "w", stderr);
+        std::wcout.imbue(std::locale("chs"));
+#endif // _DEBUG
+
     }
 
     void HookDetachAll()
@@ -190,11 +210,16 @@ namespace Hook
         MH_Uninitialize();
     }
 
-    //是否为dui线程
-    bool IsDUIThread()
+    //检查排除路径和线程
+    bool IsExcludePath()
     {
         auto iter = m_DUIList.find(GetCurrentThreadId());
-        return iter != m_DUIList.end();
+        if (iter != m_DUIList.end())
+        {
+            if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") == -1)
+                return false;
+        }
+        return true;
     }
 
     //刷新22H2的窗口标题栏区域
@@ -349,7 +374,7 @@ namespace Hook
         }
 
         //修复Blur下Edit的Alpha
-        if (IsDUIThread()) {
+        if (!IsExcludePath()) {
             if (ConvertTolower(ClassName) == L"edit")
             {
                 SetWindowLongW(hWnd, GWL_EXSTYLE, GetWindowLongW(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -482,7 +507,7 @@ namespace Hook
                     {
                         SetWindowBlur(iter->second.mainWnd);
                     }
-
+                    InvalidateRect(iter->second.hWnd, nullptr, TRUE);
                     iter->second.refresh = false;
                 }
                 //判断树列表颜色是否被改变
@@ -522,7 +547,7 @@ namespace Hook
     BOOL MyPatBlt(HDC hdc, int x, int y, int w, int h, DWORD rop)
     {
         //修复选择矩形框的Alpha
-        if (IsDUIThread() && rop == PATCOPY) {
+        if (!IsExcludePath() && rop == PATCOPY) {
             //检测调用线程
             static std::unordered_map<DWORD, bool> thList;
 
@@ -640,7 +665,7 @@ namespace Hook
         static std::unordered_map<DWORD, bool> thList;
         DWORD curTh = GetCurrentThreadId();
 
-        if (IsDUIThread() && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
+        if (IsExcludePath() && !(CheckCaller(L"msctf.dll")) && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
             && thList.find(curTh) == thList.end() && str != L"" && m_drawtextState.find(curTh) == m_drawtextState.end())
         {
             thList.insert(std::make_pair(curTh, true));
@@ -769,7 +794,7 @@ namespace Hook
         std::wstring kname = GetThemeClassName(hTheme);
 
         //将主要控件的背景色设置为黑色 以供API透明化Blur效果
-        if (iPropId == TMT_FILLCOLOR && IsDUIThread())
+        if (iPropId == TMT_FILLCOLOR && !IsExcludePath())
         {
             //DUI视图、底部状态栏、导航栏
             if (((kname == L"ItemsView" || kname == L"ExplorerStatusBar" || kname == L"ExplorerNavPane")
@@ -859,35 +884,37 @@ namespace Hook
     )
     {
         std::wstring kname = GetThemeClassName(hTheme);
-
-        //Blur模式下 透明化 Header、Rebar、预览面板、命令模块
-        if (kname == L"Header") {
-            if ((iPartId == HP_HEADERITEM && iStateId == HIS_NORMAL)
-                || (iPartId == HP_HEADERITEM && iStateId == HIS_SORTEDNORMAL)
-                || (iPartId == 0 && iStateId == HIS_NORMAL))
-                return S_OK;
-        }
-        else if (kname == L"Rebar")
+        if (!IsExcludePath())
         {
-            if ((iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
+            //Blur模式下 透明化 Header、Rebar、预览面板、命令模块
+            if (kname == L"Header") {
+                if ((iPartId == HP_HEADERITEM && iStateId == HIS_NORMAL)
+                    || (iPartId == HP_HEADERITEM && iStateId == HIS_SORTEDNORMAL)
+                    || (iPartId == 0 && iStateId == HIS_NORMAL))
+                    return S_OK;
+            }
+            else if (kname == L"Rebar")
             {
-                return S_OK;
+                if ((iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
+                {
+                    return S_OK;
+                }
+            }
+            else if (kname == L"PreviewPane")
+            {
+                if (iPartId == 1 && iStateId == 1)
+                    return S_OK;
+            }
+            else if (kname == L"CommandModule")
+            {
+                if (iPartId == 1 && iStateId == 0) {
+
+                    FillRect(hdc, pRect, m_clearBrush);
+                    return S_OK;
+                }
             }
         }
-        else if (kname == L"CommandModule" && IsDUIThread())
-        {
-            if (iPartId == 1 && iStateId == 0) {
-
-                FillRect(hdc, pRect, m_clearBrush);
-                return S_OK;
-            }
-        }
-        else if (kname == L"PreviewPane")
-        {
-            if (iPartId == 1 && iStateId == 1)
-                return S_OK;
-        }
-
+        End:
         return _DrawThemeBackgroundEx_.Org(hTheme, hdc, iPartId, iStateId, pRect, pOptions);
     }
 }
