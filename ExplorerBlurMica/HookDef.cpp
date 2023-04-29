@@ -152,6 +152,36 @@ void OnDocComplete(std::wstring path, DWORD threadID)
         iter->second.path = path;
 }
 
+
+//Exported entry 126. uxtheme.dll
+HRESULT DrawTextWithGlow
+(
+    HDC hdcMem, 
+    LPCWSTR pszText, 
+    UINT cch,
+    const RECT* prc,
+    DWORD dwFlags,
+    COLORREF crText,
+    COLORREF crGlow,
+    UINT nGlowRadius,
+    UINT nGlowIntensity, 
+    BOOL fPreMultiply,
+    DTT_CALLBACK_PROC pfnDrawTextCallback, 
+    LPARAM lParam
+)
+{
+    typedef HRESULT(WINAPI* function)(HDC, LPCWSTR, UINT, const RECT*, DWORD, 
+        COLORREF, COLORREF, UINT, UINT, BOOL, DTT_CALLBACK_PROC, LPARAM);
+    static HMODULE hModuele = GetModuleHandleW(L"uxtheme.dll");
+    if(hModuele)
+    {
+        static function pfun = (function)GetProcAddress(hModuele, MAKEINTRESOURCEA(126));
+        return pfun(hdcMem, pszText, cch, prc, dwFlags, crText, crGlow, nGlowRadius,
+            nGlowIntensity, fPreMultiply, pfnDrawTextCallback, lParam);
+    }
+    return S_FALSE;
+}
+
 namespace Hook
 {
     int hookIndex = 0;
@@ -216,10 +246,10 @@ namespace Hook
         auto iter = m_DUIList.find(GetCurrentThreadId());
         if (iter != m_DUIList.end())
         {
-            if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") == -1)
-                return false;
+            if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
+                return true;
         }
-        return true;
+        return false;
     }
 
     //刷新22H2的窗口标题栏区域
@@ -312,39 +342,57 @@ namespace Hook
     //窗口子类化
     LRESULT WINAPI MyWndSubProc(HWND hWnd, UINT message, WPARAM wparam, LPARAM lparam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
     {
-        if (message == WM_SIZE)
+        switch (message)
         {
-            int height = HIWORD(lparam);
-            OnWindowSize(hWnd, height);
+            case WM_SIZE:
+            {
+                int height = HIWORD(lparam);
+                OnWindowSize(hWnd, height);
+            }
+            break;
+
+            //case WM_NCCALCSIZE:
+            //{
+            //    /*if (!lparam)
+            //        return DefSubclassProc(hWnd, message, wparam, lparam);
+
+            //    UINT dpi = GetDpiForWindow(hWnd);
+
+            //    int frameX = GetSystemMetricsForDpi(SM_CXFRAME, dpi);
+            //    int frameY = GetSystemMetricsForDpi(SM_CYFRAME, dpi);
+            //    int padding = GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpi);
+
+            //    NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*)lparam;
+
+            //    params->rgrc->right -= frameX + padding;
+            //    params->rgrc->left += frameX + padding;
+            //    params->rgrc->bottom -= frameY + padding;*/
+
+            //    return 0;
+            //}
+            //22H2 22621.655 多标签页失去和获取焦点需要刷新
+            case WM_ACTIVATE:
+            {
+                auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
+                RECT pRect;
+                GetWindowRect(hWnd, &pRect);
+                OnWindowSize(hWnd, pRect.bottom - pRect.top);
+                return ret;
+            }
+            case WM_SYSCOMMAND:
+            {
+                if (wparam == SC_MAXIMIZE || wparam == SC_RESTORE)
+                {
+                    auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
+                    RECT pRect;
+                    GetWindowRect(hWnd, &pRect);
+                    OnWindowSize(hWnd, pRect.bottom - pRect.top);
+                    return ret;
+                }
+            }
+            break;
         }
-        else if (message == WM_NCCALCSIZE)
-        {
-            if (!lparam)
-                return DefSubclassProc(hWnd, message, wparam, lparam);
-
-            UINT dpi = GetDpiForWindow(hWnd);
-
-            int frameX = GetSystemMetricsForDpi(SM_CXFRAME, dpi);
-            int frameY = GetSystemMetricsForDpi(SM_CYFRAME, dpi);
-            int padding = GetSystemMetricsForDpi(SM_CXPADDEDBORDER, dpi);
-
-            NCCALCSIZE_PARAMS* params = (NCCALCSIZE_PARAMS*)lparam;
-
-            params->rgrc->right -= frameX + padding;
-            params->rgrc->left += frameX + padding;
-            params->rgrc->bottom -= frameY + padding;
-
-            return 0;
-        }
-        //22H2 22621.655 多标签页失去和获取焦点需要刷新
-        else if (message == WM_ACTIVATE)
-        {
-            auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
-            RECT pRect;
-            GetWindowRect(hWnd, &pRect);
-            OnWindowSize(hWnd, pRect.bottom - pRect.top);
-            return ret;
-        }
+        
         return DefSubclassProc(hWnd, message, wparam, lparam);
     }
 
@@ -579,7 +627,7 @@ namespace Hook
         return _PatBlt_.Org(hdc, x, y, w, h, rop);
     }
 
-    bool AlphaBuffer(HDC hdc, LPRECT pRc, std::function<void(HDC)> fun)
+    bool AlphaBuffer(HDC hdc, LPCRECT pRc, std::function<void(HDC)> fun)
     {
         BLENDFUNCTION bf = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
 
@@ -611,24 +659,21 @@ namespace Hook
     //修复DrawTextW的Alpha
     int MyDrawTextW(HDC hdc, LPCWSTR lpchText, int cchText, LPRECT lprc, UINT format)
     {
-        if ((format & DT_CALCRECT) || m_drawtextState.find(GetCurrentThreadId()) != m_drawtextState.end())
+        if (format & DT_CALCRECT || m_drawtextState.find(GetCurrentThreadId()) != m_drawtextState.end())
             return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
 
         HRESULT hr = S_OK;
-        HDC hDC = 0;
-        DTTOPTS dtop = { 0 };
-        dtop.dwSize = sizeof(DTTOPTS);
-        dtop.dwFlags = DTT_COMPOSITED | DTT_TEXTCOLOR | DTT_CALLBACK;
-        dtop.crText = GetTextColor(hdc);
-        dtop.pfnDrawTextCallback = [](HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPARAM lParam)
-        {
-            return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
-        };
 
-        auto fun = [&](HDC hDC) {
-            HTHEME hTheme = OpenThemeData((HWND)0, L"Menu");
-            hr = MyDrawThemeTextEx(hTheme, hDC, 0, 0, lpchText, cchText, format, lprc, &dtop);
-            CloseThemeData(hTheme);
+        auto fun = [&](HDC hDC)
+    	{
+            hr = DrawTextWithGlow(hDC, lpchText, cchText, lprc, format,
+                GetTextColor(hdc), 0, 0, 0, 0,
+                [](HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPARAM lParam)
+				{
+					return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
+				}, 
+            0);
+
         };
         if (!AlphaBuffer(hdc, lprc, fun))
         {
@@ -641,16 +686,15 @@ namespace Hook
     //修复DrawTextExW的Alpha
     int MyDrawTextExW(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
     {
-        static std::unordered_map<DWORD, bool> thList;
-        DWORD curTh = GetCurrentThreadId();
+        thread_local bool isCurThread = false;
 
         //TreeView绘制的时候最后一个参数是NULL 因此可以直接用DrawText
-        if (!lpdtp && !(format & DT_CALCRECT) && thList.find(curTh) == thList.end()
+        if (!lpdtp && !(format & DT_CALCRECT) && !isCurThread
             && m_drawtextState.find(GetCurrentThreadId()) == m_drawtextState.end()) {
 
-            thList.insert(std::make_pair(curTh, true));
+            isCurThread = true;
             auto ret = MyDrawTextW(hdc, lpchText, cchText, lprc, format);
-            thList.erase(curTh);
+            isCurThread = false;
             return ret;
         }
         return _DrawTextExW_.Org(hdc, lpchText, cchText, lprc, format, lpdtp);
@@ -662,13 +706,12 @@ namespace Hook
         std::wstring str;
         if (lpString) str = lpString;
 
-        static std::unordered_map<DWORD, bool> thList;
-        DWORD curTh = GetCurrentThreadId();
+        thread_local bool isCurThread = false;
 
-        if (IsExcludePath() && !(CheckCaller(L"msctf.dll")) && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
-            && thList.find(curTh) == thList.end() && str != L"" && m_drawtextState.find(curTh) == m_drawtextState.end())
+        if (!IsExcludePath()  && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
+            && !isCurThread && !str.empty() && m_drawtextState.find(GetCurrentThreadId()) == m_drawtextState.end())
         {
-            thList.insert(std::make_pair(curTh, true));
+            isCurThread = true;
 
             RECT rect = { 0 };
             if ((option & ETO_OPAQUE || option & ETO_CLIPPED) && lprect)
@@ -727,9 +770,11 @@ namespace Hook
                             else
                             {
                                 //先绘制上一批
-                                hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
+                                hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE,
+                                    dtop.crText, 0, 0, 0, 0, dtop.pfnDrawTextCallback, 0);
+                                //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
 
-                                batch = false;
+                            	batch = false;
                                 batchStr = lpString[i];
                                 SetTextCharacterExtra(hDC, lpDx[i]);
                                 batchRc.left = rc.left;
@@ -739,7 +784,9 @@ namespace Hook
                         //最后一批
                         if (i == c - 1)
                         {
-                            hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
+                            hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE, 
+                                dtop.crText, 0, 0, 0, 0, dtop.pfnDrawTextCallback, 0);
+                            //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
                         }
 
                         rc.left += lpDx[i];
@@ -747,6 +794,7 @@ namespace Hook
                     SetTextCharacterExtra(hDC, srcExtra);
                     CloseThemeData(hTheme);
                 };
+                //fun(hdc);
                 if (!AlphaBuffer(hdc, &rc, fun))
                 {
                     hr = _ExtTextOutW_.Org(hdc, x, y, option, lprect, lpString, c, lpDx);
@@ -756,7 +804,7 @@ namespace Hook
                     RestoreDC(hdc, -1);
             }
 
-            thList.erase(curTh);
+            isCurThread = false;
             return 1;
         }
         return _ExtTextOutW_.Org(hdc, x, y, option, lprect, lpString, c, lpDx);
@@ -831,29 +879,24 @@ namespace Hook
 
         if (pOptions && !(pOptions->dwFlags & DTT_CALCRECT) && !(pOptions->dwFlags & DTT_COMPOSITED))
         {
-            DTTOPTS Options = *pOptions;
-            Options.dwFlags |= DTT_COMPOSITED;
-
-            HRESULT ret = S_OK;
-
             auto fun = [&](HDC hDC)
             {
                 auto tid = GetCurrentThreadId();
                 m_drawtextState.insert(std::make_pair(tid, true));
-                ret = _DrawThemeTextEx_.Org(hTheme, hDC, iPartId, iStateId, pszText, cchText, dwTextFlags,
-                    (LPRECT)pRect, &Options);
+                ret = DrawTextWithGlow(hDC, pszText, cchText, pRect, dwTextFlags,
+                    pOptions->crText, 0, 0, 0, 0, pOptions->pfnDrawTextCallback, pOptions->lParam);
+                //ret = _DrawThemeTextEx_.Org(hTheme, hDC, iPartId, iStateId, pszText, cchText, dwTextFlags,
+                //    (LPRECT)pRect, &Options);
                 m_drawtextState.erase(tid);
             };
 
-            if (!AlphaBuffer(hdc, (LPRECT)pRect, fun))
+            if (!AlphaBuffer(hdc, pRect, fun))
                 goto Org;
 
             return ret;
         }
-        else {
         Org:
             ret = _DrawThemeTextEx_.Org(hTheme, hdc, iPartId, iStateId, pszText, cchText, dwTextFlags, (LPRECT)pRect, pOptions);
-        }
         return ret;
     }
 
