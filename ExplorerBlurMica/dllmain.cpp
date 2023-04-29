@@ -18,6 +18,22 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         g_hModule = hModule;
         DisableThreadLibraryCalls(hModule);
 
+        if (GetModuleHandleW(L"SettingSyncHost.exe")
+            || GetModuleHandleW(L"SkyDrive.exe")
+            || GetModuleHandleW(L"FileManager.exe")
+            || GetModuleHandleW(L"vmtoolsd.exe")
+            || GetModuleHandleW(L"svchost.exe")
+            || GetModuleHandleW(L"SearchIndexer.exe")
+            || GetModuleHandleW(L"WSHost.exe")
+            || GetModuleHandleW(L"wmpnetwk.exe")
+            || GetModuleHandleW(L"svchost.exe")
+            || GetModuleHandleW(L"dllhost.exe")
+            || GetModuleHandleW(L"spoolsv.exe"))
+        {
+            //FreeLibraryAndExitThread(hModule, 0);
+            return FALSE;
+        }
+
         //防止别的程序意外加载
         wchar_t pName[MAX_PATH];
         GetModuleFileNameW(NULL, pName, MAX_PATH);

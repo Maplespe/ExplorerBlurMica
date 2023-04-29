@@ -259,6 +259,16 @@ STDAPI DllRegisterServer()
 	RegCloseKey(hkey);
 
 	//注册BHO组件
+	//if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
+	//	+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
+	//	return SELFREG_E_CLASS;
+
+	////注册文件对话框
+	//DWORD value = 255;
+	//RegSetValueExW(hkey, L"DriveMask", 0, REG_DWORD, (const BYTE*)&value, sizeof(DWORD));
+
+	//RegCloseKey(hkey);
+
 	if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\)"
 		+ CLSID_SHELL_BHO_STR).c_str(), 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return SELFREG_E_CLASS;
@@ -275,6 +285,8 @@ STDAPI DllUnregisterServer()
 	//删除BHO组件注册
 	RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\\)"
 		+ CLSID_SHELL_BHO_STR).c_str());
+	/*RegDeleteKeyW(HKEY_LOCAL_MACHINE, (LR"(SOFTWARE\Classes\Drive\shellex\FolderExtensions\)"
+		+ CLSID_SHELL_BHO_STR).c_str());*/
 	//删除COM组件注册
 	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR + L"\\InProcServer32").c_str());
 	RegDeleteKeyW(HKEY_CLASSES_ROOT, (L"CLSID\\" + CLSID_SHELL_BHO_STR).c_str());

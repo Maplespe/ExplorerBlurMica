@@ -149,7 +149,9 @@ void OnDocComplete(std::wstring path, DWORD threadID)
     //std::wcout << L"path[" << threadID << L"] " << path << L"\n";
     auto iter = m_DUIList.find(threadID);
     if (iter != m_DUIList.end())
-        iter->second.path = path;
+    {
+        iter->second.path = std::move(path);
+    }
 }
 
 
@@ -244,10 +246,12 @@ namespace Hook
     bool IsExcludePath()
     {
         auto iter = m_DUIList.find(GetCurrentThreadId());
-        if (iter != m_DUIList.end())
+        if (iter == m_DUIList.end()) return true;
+        if (iter->second.mainWnd == nullptr)
         {
-            if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
-                return true;
+            /*if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
+                return true;*/
+            return true;
         }
         return false;
     }
@@ -434,29 +438,29 @@ namespace Hook
         if (ClassName == L"DirectUIHWND" && GetWindowClassName(hWndParent) == L"SHELLDLL_DefView")
         {
             //继续查找父级
-            HWND parent = GetParent(hWndParent);
-            if (GetWindowClassName(parent) == L"ShellTabWindowClass")
+            if (GetWindowClassName(hWndParent) == L"ShellTabWindowClass")
             {
-                parent = GetParent(parent);
-
-                //设置Blur
-                SetWindowBlur(parent);
-
-                //22H2
-                if (g_sysBuildNumber >= 22500)
-                {
-                    SetWindowSubclass(parent, MyWndSubProc, 0, (DWORD_PTR)0);
-                }
-
                 //记录到列表中 Add to list
                 DWORD tid = GetCurrentThreadId();
-
-                DUIData data;
-                data.hWnd = hWnd;
-                data.mainWnd = parent;
-
-                m_DUIList[tid] = data;
+                m_DUIList[tid].hWnd = hWnd;
             }
+        }
+        //查找主窗口
+        else if(ClassName == L"SHELLDLL_DefView" && GetWindowClassName(hWndParent) == L"ShellTabWindowClass")
+        {
+            HWND mainWnd =  GetParent(hWndParent);
+            //设置Blur
+            SetWindowBlur(mainWnd);
+
+            //22H2
+            if (g_sysBuildNumber >= 22500)
+            {
+                SetWindowSubclass(mainWnd, MyWndSubProc, 0, (DWORD_PTR)0);
+            }
+
+            //记录到列表中 Add to list
+            DWORD tid = GetCurrentThreadId();
+            m_DUIList[tid].mainWnd = mainWnd;
         }
         //导航树视图
         else if (ClassName == L"SysTreeView32")
@@ -567,10 +571,7 @@ namespace Hook
                 }
                 return ret;
             }
-            else
-                goto Next;
         }
-    Next:
         //透明化 Windows 10 Ribbon 在Light模式
         auto ribiter = m_ribbonPaint.find(curThread);
         if (ribiter != m_ribbonPaint.end())
@@ -708,7 +709,7 @@ namespace Hook
 
         thread_local bool isCurThread = false;
 
-        if (!IsExcludePath()  && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
+        if (!IsExcludePath() && !(CheckCaller(L"msctf.dll")) && !(option & ETO_GLYPH_INDEX) && !(option & ETO_IGNORELANGUAGE)
             && !isCurThread && !str.empty() && m_drawtextState.find(GetCurrentThreadId()) == m_drawtextState.end())
         {
             isCurThread = true;
@@ -732,17 +733,13 @@ namespace Hook
                     IntersectClipRect(hdc, rect.left, rect.top, rect.right, rect.bottom);
                 }
 
-                HRESULT hr = S_OK;
-                HDC hDC = 0;
-                DTTOPTS dtop = { 0 };
-                dtop.dwSize = sizeof(DTTOPTS);
-                dtop.dwFlags = DTT_COMPOSITED | DTT_TEXTCOLOR | DTT_CALLBACK;
-                dtop.crText = GetTextColor(hdc);
-                dtop.pfnDrawTextCallback = [](HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPARAM lParam)
+                COLORREF crText = GetTextColor(hdc);
+                auto callback = [](HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPARAM lParam)
                 {
                     return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
                 };
 
+                HRESULT hr = S_OK;
                 //合批绘制文本
                 auto fun = [&](HDC hDC) {
                     HTHEME hTheme = OpenThemeData((HWND)0, L"Menu");
@@ -771,7 +768,7 @@ namespace Hook
                             {
                                 //先绘制上一批
                                 hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE,
-                                    dtop.crText, 0, 0, 0, 0, dtop.pfnDrawTextCallback, 0);
+                                    crText, 0, 0, 0, 0, callback, 0);
                                 //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
 
                             	batch = false;
@@ -785,7 +782,7 @@ namespace Hook
                         if (i == c - 1)
                         {
                             hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE, 
-                                dtop.crText, 0, 0, 0, 0, dtop.pfnDrawTextCallback, 0);
+                                crText, 0, 0, 0, 0, callback, 0);
                             //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
                         }
 
@@ -839,10 +836,11 @@ namespace Hook
     )
     {
         HRESULT ret = _GetThemeColor_.Org(hTheme, iPartId, iStateId, iPropId, pColor);
+
         std::wstring kname = GetThemeClassName(hTheme);
 
         //将主要控件的背景色设置为黑色 以供API透明化Blur效果
-        if (iPropId == TMT_FILLCOLOR && !IsExcludePath())
+        if (iPropId == TMT_FILLCOLOR)
         {
             //DUI视图、底部状态栏、导航栏
             if (((kname == L"ItemsView" || kname == L"ExplorerStatusBar" || kname == L"ExplorerNavPane")
@@ -907,13 +905,16 @@ namespace Hook
         LPCRECT pRect,
         LPCRECT pClipRect)
     {
-        std::wstring kname = GetThemeClassName(hTheme);
-
-        if (kname == L"Rebar" && (iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
+        if (!IsExcludePath())
         {
-            return S_OK;
-        }
+            std::wstring kname = GetThemeClassName(hTheme);
 
+            if (kname == L"Rebar" && (iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
+            {
+                FillRect(hdc, pRect, m_clearBrush);
+                return S_OK;
+            }
+        }
         return _DrawThemeBackground_.Org(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
     }
 
@@ -926,9 +927,12 @@ namespace Hook
         const DTBGOPTS* pOptions
     )
     {
-        std::wstring kname = GetThemeClassName(hTheme);
         if (!IsExcludePath())
         {
+            std::wstring kname = GetThemeClassName(hTheme);
+
+            //std::wcout << kname << L" p:" << iPartId << L" s:" << iStateId << std::endl;
+
             //Blur模式下 透明化 Header、Rebar、预览面板、命令模块
             if (kname == L"Header") {
                 if ((iPartId == HP_HEADERITEM && iStateId == HIS_NORMAL)
@@ -940,6 +944,7 @@ namespace Hook
             {
                 if ((iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
                 {
+                    FillRect(hdc, pRect, m_clearBrush);
                     return S_OK;
                 }
             }
@@ -956,8 +961,15 @@ namespace Hook
                     return S_OK;
                 }
             }
+            else if (kname == L"ControlPanel")
+            {
+                if (iPartId == 2 && iStateId == 0) {
+
+                    FillRect(hdc, pRect, m_clearBrush);
+                    return S_OK;
+                }
+            }
         }
-        End:
         return _DrawThemeBackgroundEx_.Org(hTheme, hdc, iPartId, iStateId, pRect, pOptions);
     }
 }
