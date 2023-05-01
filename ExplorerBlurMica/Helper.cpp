@@ -119,6 +119,9 @@ void StartAero(HWND hwnd, int type, COLORREF color, bool blend)
 			policy.nFlags = 0;
 			policy.nColor = 0;
 		}
+		if(type > 0 || (type == 0 && M_GetAValue(color) == 0))
+			policy.nFlags |= 3584;
+
 		WINCOMPATTRDATA data = { 19, &policy, sizeof(ACCENTPOLICY) };
 		SetWindowCompositionAttribute(hwnd, &data);
 	}
@@ -387,4 +390,45 @@ void RefreshWin10BlurFrame(bool blurType)
 				setreg(L"0");
 		}
 	}
+}
+
+//Exported entry 126. uxtheme.dll
+HRESULT DrawTextWithGlow
+(
+	HDC hdcMem,
+	LPCWSTR pszText,
+	UINT cch,
+	const RECT* prc,
+	DWORD dwFlags,
+	COLORREF crText,
+	COLORREF crGlow,
+	UINT nGlowRadius,
+	UINT nGlowIntensity,
+	BOOL fPreMultiply,
+	DTT_CALLBACK_PROC pfnDrawTextCallback,
+	LPARAM lParam
+)
+{
+	typedef HRESULT(WINAPI* function)(HDC, LPCWSTR, UINT, const RECT*, DWORD,
+		COLORREF, COLORREF, UINT, UINT, BOOL, DTT_CALLBACK_PROC, LPARAM);
+	static HMODULE hModuele = GetModuleHandleW(L"uxtheme.dll");
+	if (hModuele)
+	{
+		static function pfun = (function)GetProcAddress(hModuele, MAKEINTRESOURCEA(126));
+		return pfun(hdcMem, pszText, cch, prc, dwFlags, crText, crGlow, nGlowRadius,
+			nGlowIntensity, fPreMultiply, pfnDrawTextCallback, lParam);
+	}
+	return E_NOTIMPL;
+}
+
+HRESULT DwmUpdateAccentBlurRect(HWND hWnd, RECT* prc)
+{
+	typedef HRESULT(WINAPI* function)(HWND, RECT*);
+	static HMODULE hModule = GetModuleHandleW(L"dwmapi.dll");
+	if(hModule)
+	{
+		static function pfun = (function)GetProcAddress(hModule, MAKEINTRESOURCEA(159));
+		return pfun(hWnd, prc);
+	}
+	return E_NOTIMPL;
 }

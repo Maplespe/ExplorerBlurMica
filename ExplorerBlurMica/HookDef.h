@@ -111,6 +111,10 @@ namespace Hook {
     extern HRESULT MyDrawThemeBackground(HTHEME, HDC, int, int, LPCRECT, LPCRECT);
     extern HRESULT MyDrawThemeBackgroundEx(HTHEME, HDC, int, int, LPCRECT, const DTBGOPTS*);
 
+    //Ribbon
+    extern HRESULT MyCoCreateInstance(const IID&, LPUNKNOWN, DWORD, const IID&, LPVOID*);
+    extern HRESULT IPropertyStore_SetValue(void*, const PROPERTYKEY&, const PROPVARIANT&);
+
     template<typename T>
     inline auto HookDef(T tar, void* det)
     {

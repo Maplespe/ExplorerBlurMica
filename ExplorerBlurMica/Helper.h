@@ -18,6 +18,16 @@
 #pragma comment(lib, "GdiPlus.lib")
 #pragma comment(lib, "uxtheme.lib")
 
+inline COLORREF M_RGBA(BYTE r, BYTE g, BYTE b, BYTE a)
+{
+    return RGB(r, g, b) | (a << 24);
+}
+
+inline BYTE M_GetAValue(COLORREF rgba)
+{
+    return BYTE(ULONG(rgba >> 24) & 0xff);
+}
+
 //获取当前dll所在目录
 extern std::wstring GetCurDllDir();
 
@@ -62,3 +72,25 @@ extern std::wstring RegGetSZ(HKEY hKey, LPCWSTR SubKey, LPCWSTR KeyName);
 
 //刷新Windows10窗口Blur窗口边框设置
 void RefreshWin10BlurFrame(bool blurType);
+
+/*Exported entry 126. uxtheme.dll
+* DrawThremeTextEx的内部替代函数
+*/
+extern HRESULT DrawTextWithGlow
+(
+    HDC hdcMem,
+    LPCWSTR pszText,
+    UINT cch,
+    const RECT* prc,
+    DWORD dwFlags,
+    COLORREF crText,
+    COLORREF crGlow,
+    UINT nGlowRadius,
+    UINT nGlowIntensity,
+    BOOL fPreMultiply,
+    DTT_CALLBACK_PROC pfnDrawTextCallback,
+    LPARAM lParam
+);
+
+//Exported entry 159. dwmapi.dll
+extern HRESULT DwmUpdateAccentBlurRect(HWND hWnd, RECT* prc);
