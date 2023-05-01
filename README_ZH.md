@@ -10,6 +10,13 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 * 可选Blur、Acrylic或者Mica效果
 * 可自定义混合颜色
 
+## 兼容性
+与 StartAllBack、OldNewExplorer等修改窗口样式的软件兼容.
+
+似乎还与第三方主题兼容!
+
+但目前与 [TranslucentFlyouts](https://github.com/ALTaleX531/TranslucentFlyouts) 存在冲突 (因为使用了相同的文本渲染技术)
+
 ## 目录
 - [预览](#预览)
 - [如何使用](#如何使用)
