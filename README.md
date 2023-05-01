@@ -10,6 +10,13 @@ This project uses [LGNU V3 license](/COPYING.LESSER).
 * Blur or Acrylic, Mica effects are available.
 * Custom blend colors are available.
 
+## Compatibility
+Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
+
+It also seems to be compatible with third-party themes!
+
+There is currently a conflict with [TranslucentFlyouts](https://github.com/ALTaleX531/TranslucentFlyouts) (because the same text layer rendering technology is used)
+
 ## Catalog
 - [Overview](#overview)
 - [How to use](#how-to-use)
