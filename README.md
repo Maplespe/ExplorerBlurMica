@@ -9,13 +9,12 @@ This project uses [LGNU V3 license](/COPYING.LESSER).
 ## Effects
 * Blur or Acrylic, Mica effects are available.
 * Custom blend colors are available.
+* Light/Dark Mode Adaptive.
 
 ## Compatibility
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
 
 It also seems to be compatible with third-party themes!
-
-There is currently a conflict with [TranslucentFlyouts](https://github.com/ALTaleX531/TranslucentFlyouts) (because the same text layer rendering technology is used)
 
 ## Catalog
 - [Overview](#overview)
@@ -30,19 +29,32 @@ There is currently a conflict with [TranslucentFlyouts](https://github.com/ALTal
 [config]
 effect=1
 showLine=false
-[blend]
+clearAddress=false
+[light]
 r=200
 g=200
 b=200
 a=10
+....
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204426.png)
+
+```ini
+[config]
+effect=3
+showLine=false
+clearAddress=true
+clearBarBg=true
+....
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/011806.png)
 
 Dark Mode
 ```ini
 [config]
 effect=2
 showLine=true
+clearAddress=false
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/22h2mica.jpg)
 
@@ -51,7 +63,8 @@ showLine=true
 [config]
 effect=0
 showLine=true
-[blend]
+clearAddress=false
+[light]
 r=255
 g=255
 b=255
@@ -68,7 +81,8 @@ effect=1
 smallBorder=false
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
@@ -82,7 +96,8 @@ effect=1
 smallBorder=false
 showLine=true
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
@@ -96,7 +111,8 @@ effect=1
 smallBorder=false
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=27
 g=179
 b=129
@@ -110,13 +126,30 @@ effect=0
 smallBorder=true
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
 a=120
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/203646.png)
+
+```ini
+[config]
+effect=1
+smallBorder=true
+showLine=false
+darkRibbon=true
+clearAddress=true
+clearBarBg=true
+[light]
+r=220
+g=220
+b=220
+a=120
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/003702.png)
 
 </details>
 
@@ -142,7 +175,8 @@ Note: If something happens that crashes Explorer, press and hold the `ESC` key t
 ## Config
 ``` ini
 [config]
-#Effect type 0=blur 1=acrylic(Mica is only available for win11 Blur effect is only available before 22H2)
+#Effect type 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
+#Blur is only available until win11 22h2, Blur (Clear) is available in both win10 and win11, Mica is win11 only.
 effect=1
 #This is to solve the problem that Blur effect under Windows 10 will make the window shadow also be blurred.
 #If you use the Blur effect you can set it to true to alleviate this.
@@ -152,12 +186,26 @@ showLine=false
 #Ribbon text colors and backgrounds are rendered incorrectly in Windows 10 Light mode.
 #This option allows you to set the ribbon to dark mode to alleviate this problem.
 darkRibbon=true
-[blend]
+#Clear the background of the address bar.
+#(Note: If you use StartAllBack, you must close the "Classic search box", otherwise it overrides the effect of this program).
+clearAddress=true
+#Clear the background color of the scrollbar.
+#(Note: Since the system scrollbar itself has a background color that cannot be removed,
+# when this option is turned on, the scrollbar is drawn by the program and the style may be different from the system).
+clearBarBg=true
+[light]
+#The system color scheme is the color in Light mode.
 #RGBA component of background blend color
-r=255
-g=255
-b=255
+r=220
+g=220
+b=220
 a=160
+[dark]
+#The system color scheme is the color in Dark mode.
+r=0
+g=0
+b=0
+a=120
 ```
 
 Save the configuration after modification and reopen the File Explorer window to take effect.

@@ -20,19 +20,28 @@
 
 struct DUIData
 {
-    HWND hWnd = 0;      //DirectUIHWND
     HWND mainWnd = 0;   //Explorer Window
-    HWND TreeWnd = 0;   //TreeView
-    HWND LineWnd = 0;   //DirectUIHWND主容器
 
-    //DirectUIHWND
-    HDC hDC = 0;
-    HDC srcDC = 0;
+    struct treeViewData
+    {
+        HDC hDC = nullptr;
+        HWND hWnd = nullptr;
+    };
+
+    struct itemViewData
+    {
+        HDC hDC = nullptr;
+        HWND lineWnd = nullptr;
+        treeViewData treeData;
+    };
 
     SIZE size = { 0,0 };
-    bool treeDraw = false;
     bool refresh = true;
-    std::wstring path; //当前打开路径
+	bool treeDraw = false;
+    //std::wstring path;
+
+    //DirectUIHWND
+    std::unordered_map<HWND, itemViewData> duiList;
 };
 struct Config
 {
@@ -41,6 +50,8 @@ struct Config
     bool smallborder = false;
     bool showLine = false;
     bool darkRibbon = true;
+    bool clearAddress = false;
+    bool clearBarBg = false;
 };
 
 //线程安全的hashmap
@@ -87,6 +98,11 @@ public:
         return m_map.end();
     }
 
+    auto size()
+    {
+        return m_map.size();
+    }
+
 private:
     std::mutex m_mutex;
     std::unordered_map<T, T1> m_map;
@@ -95,84 +111,90 @@ private:
 hashMap<DWORD, DUIData> m_DUIList;                  //dui句柄列表
 hashMap<DWORD, std::pair<HWND, HDC>> m_ribbonPaint; //用来记录win10 Ribbon区域是否绘制
 hashMap<DWORD, bool> m_drawtextState;               //用来记录drawText Alpha修复状态
-HBRUSH m_clearBrush = 0;                            //用于清空DC的画刷
+HBRUSH m_clearBrush = (HBRUSH)GetStockObject(BLACK_BRUSH);  //用于清空DC的画刷
 Config m_config;                                    //配置文件
 
+COLORREF GetColorCfg(bool light)
+{
+    std::wstring path = GetCurDllDir() + L"\\config.ini";
+    auto color = [&path, &light](std::wstring s) -> BYTE
+    {
+        int c = _wtoi(GetIniString(path, light ? L"light" : L"dark", s).c_str());
+        if (c > 255) c = 255;
+        else if (c < 0) c = 0;
+
+        return BYTE(c);
+    };
+    //纯黑或者纯白alpha会失效 限制最小或最大值
+    auto c = M_RGBA(color(L"r"), color(L"g"), color(L"b"), color(L"a"));
+    if (GetRValue(c) == 255 && GetGValue(c) == 255 && GetBValue(c) == 255)
+        c = M_RGBA(249, 249, 249, M_GetAValue(c));
+    else if (GetRValue(c) == 0 && GetGValue(c) == 0 && GetBValue(c) == 0)
+        c = M_RGBA(40, 40, 40, M_GetAValue(c));
+    return c;
+}
 
 void RefreshConfig()
 {
-    if (!m_clearBrush)
-        m_clearBrush = CreateSolidBrush(0x00000000);
-    
     std::wstring path = GetCurDllDir() + L"\\config.ini";
     auto cfg = GetIniString(path, L"config", L"effect");
 
     //效果类型
     m_config.effType = _wtoi(cfg.c_str());
-    if (m_config.effType < 0 || m_config.effType > 2)
+    if (m_config.effType < 0 || m_config.effType > 3)
         m_config.effType = 0;
 
     //22000以后不支持Blur效果
     if (m_config.effType == 0 && g_sysBuildNumber > 22000)
         m_config.effType = 1;
 
-    //颜色RGBA
-    auto color = [&path](std::wstring s) -> BYTE
-    {
-        int c = _wtoi(GetIniString(path, L"blend", s).c_str());
-        if (c > 255) c = 255;
-        else if (c < 0) c = 0;
-
-        return BYTE(c);
-    };
-    auto& c = m_config.blendColor;
-    c = M_RGBA(color(L"r"), color(L"g"), color(L"b"), color(L"a"));
-
-    //纯黑或者纯白alpha会失效 限制最小或最大值
-    if (GetRValue(c) == 255 && GetGValue(c) == 255 && GetBValue(c) == 255)
-        c = M_RGBA(249, 249, 249, M_GetAValue(c));
-    else if (GetRValue(c) == 0 && GetGValue(c) == 0 && GetBValue(c) == 0)
-        c = M_RGBA(40, 40, 40, M_GetAValue(c));
-
+    m_config.blendColor = GetColorCfg(SysIsLightMode());
     m_config.smallborder = GetIniString(path, L"config", L"smallBorder") == L"true" ? true : false;
     m_config.showLine = GetIniString(path, L"config", L"showLine") == L"true" ? true : false;
     m_config.darkRibbon = GetIniString(path, L"config", L"darkRibbon") == L"false" ? false : true;
+    m_config.clearAddress = GetIniString(path, L"config", L"clearAddress") == L"true" ? true : false;
+    m_config.clearBarBg = GetIniString(path, L"config", L"clearBarBg") == L"true" ? true : false;
 
     RefreshWin10BlurFrame(m_config.smallborder);
 }
 
 void OnDocComplete(std::wstring path, DWORD threadID)
 {
-    //std::wcout << L"path[" << threadID << L"] " << path << L"\n";
     auto iter = m_DUIList.find(threadID);
     if (iter != m_DUIList.end())
     {
-        iter->second.path = std::move(path);
+        iter->second.treeDraw = true;
+        //iter->second.path = std::move(path);
+       /* if(path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
+        {
+            StartAero(iter->second.mainWnd, -1);
+        }*/
     }
+    //std::wcout << L"path[" << threadID << L"] " << path << L"\n";
 }
 
 namespace Hook
 {
     int hookIndex = 0;
 
-    auto _CreateWindowExW_          = HookDef(CreateWindowExW, MyCreateWindowExW);
-    auto _DestroyWindow_            = HookDef(DestroyWindow, MyDestroyWindow);
-    auto _BeginPaint_               = HookDef(BeginPaint, MyBeginPaint);
-    auto _EndPaint_                 = HookDef(EndPaint, MyEndPaint);
-    auto _FillRect_                 = HookDef(FillRect, MyFillRect);
-    auto _DrawTextW_                = HookDef(DrawTextW, MyDrawTextW);
-    auto _DrawTextExW_              = HookDef(DrawTextExW, MyDrawTextExW);
-    auto _ExtTextOutW_              = HookDef(ExtTextOutW, MyExtTextOutW);
-    auto _CreateCompatibleDC_       = HookDef(CreateCompatibleDC, MyCreateCompatibleDC);
-    auto _GetThemeColor_            = HookDef(GetThemeColor, MyGetThemeColor);
-    auto _DrawThemeText_            = HookDef(DrawThemeText, MyDrawThemeText);
-    auto _DrawThemeTextEx_          = HookDef(DrawThemeTextEx, MyDrawThemeTextEx);
-    auto _DrawThemeBackground_      = HookDef(DrawThemeBackground, MyDrawThemeBackground);
-    auto _DrawThemeBackgroundEx_    = HookDef(DrawThemeBackgroundEx, MyDrawThemeBackgroundEx);
-    auto _PatBlt_                   = HookDef(PatBlt, MyPatBlt);
-    auto _CoCreateInstance_         = HookDef(CoCreateInstance, MyCoCreateInstance);
+    auto _CreateWindowExW_ = HookDef(CreateWindowExW, MyCreateWindowExW);
+    auto _DestroyWindow_ = HookDef(DestroyWindow, MyDestroyWindow);
+    auto _BeginPaint_ = HookDef(BeginPaint, MyBeginPaint);
+    auto _EndPaint_ = HookDef(EndPaint, MyEndPaint);
+    auto _FillRect_ = HookDef(FillRect, MyFillRect);
+    auto _DrawTextW_ = HookDef(DrawTextW, MyDrawTextW);
+    auto _DrawTextExW_ = HookDef(DrawTextExW, MyDrawTextExW);
+    auto _ExtTextOutW_ = HookDef(ExtTextOutW, MyExtTextOutW);
+    auto _CreateCompatibleDC_ = HookDef(CreateCompatibleDC, MyCreateCompatibleDC);
+    auto _GetThemeColor_ = HookDef(GetThemeColor, MyGetThemeColor);
+    auto _DrawThemeText_ = HookDef(DrawThemeText, MyDrawThemeText);
+    auto _DrawThemeTextEx_ = HookDef(DrawThemeTextEx, MyDrawThemeTextEx);
+    auto _DrawThemeBackground_ = HookDef(DrawThemeBackground, MyDrawThemeBackground);
+    auto _DrawThemeBackgroundEx_ = HookDef(DrawThemeBackgroundEx, MyDrawThemeBackgroundEx);
+    auto _PatBlt_ = HookDef(PatBlt, MyPatBlt);
+    auto _CoCreateInstance_ = HookDef(CoCreateInstance, MyCoCreateInstance);
 
-	HRESULT(WINAPI* IPropertyStore_SetValue_ORG)(void*, const PROPERTYKEY&, const PROPVARIANT&) = nullptr;
+    HRESULT(WINAPI* IPropertyStore_SetValue_ORG)(void*, const PROPERTYKEY&, const PROPVARIANT&) = nullptr;
 
     void HookAttachAll()
     {
@@ -191,7 +213,7 @@ namespace Hook
 
         //修复win11暗黑模式下地址栏不透明
         //if (g_sysBuildNumber >= 22000)
-            _DrawThemeBackground_.Attach();
+        _DrawThemeBackground_.Attach();
 
         _DrawThemeBackgroundEx_.Attach();
         _PatBlt_.Attach();
@@ -218,10 +240,12 @@ namespace Hook
     {
         auto iter = m_DUIList.find(GetCurrentThreadId());
         if (iter == m_DUIList.end()) return true;
+        /*if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
+        {
+            return false;
+        }*/
         if (iter->second.mainWnd == nullptr)
         {
-            /*if (iter->second.path.find(L"::{26EE0668-A00A-44D7-9371-BEB064C98683}") != std::wstring::npos)
-                return true;*/
             return true;
         }
         return false;
@@ -231,7 +255,8 @@ namespace Hook
     void OnWindowSize(HWND hWnd, int newHeight)
     {
         MARGINS margin = { -1 };
-        if (M_GetAValue(m_config.blendColor) != 0 && m_config.effType == 1) {
+        if ((M_GetAValue(m_config.blendColor) != 0 && m_config.effType == 1) || m_config.effType == 3)
+        {
             margin.cyTopHeight = GetSystemMetricsForDpi(SM_CYCAPTION, GetDpiForWindow(hWnd)) + 10;
         }
         else
@@ -246,7 +271,7 @@ namespace Hook
     //设置窗口效果
     void SetWindowBlur(HWND hWnd)
     {
-        bool isBlend = M_GetAValue(m_config.blendColor) != 0;
+        bool isBlend = M_GetAValue(m_config.blendColor) != 0 && m_config.effType != 3;
         if (g_sysBuildNumber >= 22000)
         {
             if (g_sysBuildNumber >= 22500)
@@ -254,7 +279,7 @@ namespace Hook
                 RECT pRect;
                 GetWindowRect(hWnd, &pRect);
                 OnWindowSize(hWnd, pRect.bottom - pRect.top);
-                if (m_config.effType == 1)
+                if (m_config.effType == 1 || m_config.effType == 3)
                 {
                     //禁用winrt私有云母合成效果
                     int type = 0;
@@ -266,8 +291,8 @@ namespace Hook
                     blur.fEnable = 1;
                     DwmEnableBlurBehindWindow(hWnd, &blur);
 
-                    if (isBlend)
-                        StartAero(hWnd, 1, m_config.blendColor, true);
+                    if (isBlend || m_config.effType == 3)
+                        StartAero(hWnd, m_config.effType, m_config.blendColor, isBlend);
                     else
                     {
                         DWM_SYSTEMBACKDROP_TYPE type1 = DWMSBT_TRANSIENTWINDOW;
@@ -285,29 +310,30 @@ namespace Hook
 
             switch (m_config.effType)
             {
-                case 0:
-                {
-                    int type = 0;
-                    DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+            case 0:
+            {
+                int type = 0;
+                DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
 
-                    StartAero(hWnd, 0, m_config.blendColor, isBlend);
-                    break;
-                }
-                case 1:
-                {
-                    //取消标题栏的Mica效果
-                    int type = 0;
-                    HRESULT hr = DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
+                StartAero(hWnd, 0, m_config.blendColor, isBlend);
+                break;
+            }
+            case 1:
+            {
+                //取消标题栏的Mica效果
+                int type = 0;
+                HRESULT hr = DwmSetWindowAttribute(hWnd, 1029, &type, sizeof(type));
 
-                    StartAero(hWnd, 1, m_config.blendColor, isBlend);
+                StartAero(hWnd, 1, m_config.blendColor, isBlend);
 
-                    //设置标题栏颜色
-                    COLORREF color = m_config.blendColor;
-                    DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &color, sizeof(color));
-                    break;
-                }
-            case 2:
-                StartAero(hWnd, 2, 0, false);
+                //设置标题栏颜色
+                COLORREF color = m_config.blendColor;
+                DwmSetWindowAttribute(hWnd, DWMWA_CAPTION_COLOR, &color, sizeof(color));
+                break;
+            }
+            default:
+                StartAero(hWnd, m_config.effType, 0, false);
+                break;
             }
         }
         else
@@ -370,9 +396,9 @@ namespace Hook
             break;
             }
         }
-        else if(dwRefData == 1)
+        else if (dwRefData == 1)
         {
-        	if (message == WM_WINDOWPOSCHANGED)
+            if (message == WM_WINDOWPOSCHANGED)
             {
                 auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
 
@@ -390,7 +416,7 @@ namespace Hook
                     rc.left += width;
                     rc.right += width;
                 }
-        		DwmUpdateAccentBlurRect(hWnd, &rc);
+                DwmUpdateAccentBlurRect(hWnd, &rc);
 
                 return ret;
             }
@@ -413,6 +439,28 @@ namespace Hook
             }
             return ret;
         }*/
+        if (message == WM_SETTINGCHANGE)
+        {
+            if (lparam && CompareStringOrdinal((LPCWCH)lparam, -1, L"ImmersiveColorSet", -1, TRUE) == CSTR_EQUAL)
+            {
+                m_config.blendColor = GetColorCfg(SysIsLightMode());
+                SetWindowBlur(hWnd);
+            }
+        }
+        else if(message == WM_DPICHANGED)
+        {
+            auto ret = DefSubclassProc(hWnd, message, wparam, lparam);
+            auto iter = m_DUIList.find(GetCurrentThreadId());
+            if (iter != m_DUIList.end())
+            {
+                iter->second.treeDraw = true;
+            }
+
+            RECT pRect;
+            GetWindowRect(hWnd, &pRect);
+            OnWindowSize(hWnd, pRect.bottom - pRect.top);
+            return ret;
+        }
         return DefSubclassProc(hWnd, message, wparam, lparam);
     }
 
@@ -442,7 +490,8 @@ namespace Hook
         }
 
         //修复Blur下Edit的Alpha
-        if (!IsExcludePath()) {
+        if (!IsExcludePath()) 
+        {
             if (ConvertTolower(ClassName) == L"edit")
             {
                 SetWindowLongW(hWnd, GWL_EXSTYLE, GetWindowLongW(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
@@ -450,6 +499,15 @@ namespace Hook
             }
         }
 
+        /*if(ClassName == L"UIRibbonCommandBarDock")
+        {
+			SetWindowLongW(hWnd, GWL_EXSTYLE, GetWindowLongW(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+            SetLayeredWindowAttributes(hWnd, RGB(0, 0, 0), 255, LWA_ALPHA);
+            InvalidateRect(hWnd, nullptr, TRUE);
+            std::wcout << L"UIRibbonCommandBarDock\n";
+        }*/
+
+        thread_local HWND lastDUI = nullptr;
         //explorer window 
         if (ClassName == L"DirectUIHWND" && GetWindowClassName(hWndParent) == L"SHELLDLL_DefView")
         {
@@ -457,15 +515,75 @@ namespace Hook
             HWND parent = GetParent(hWndParent);
             if (GetWindowClassName(parent) == L"ShellTabWindowClass")
             {
-                //记录到列表中 Add to list
                 DWORD tid = GetCurrentThreadId();
-                m_DUIList[tid].hWnd = hWnd;
+                auto& node = m_DUIList[tid].duiList[hWnd];
+                node.hDC = nullptr;
+                if(!node.treeData.hWnd)
+                {
+                    auto enumChild = [](HWND hWnd, std::vector<HWND>& list)
+                    {
+                        list.clear();
+                        auto enumproc = [](HWND hWnd, LPARAM lParam)
+                        {
+                            auto list = (std::vector<HWND>*)lParam;
+                            list->push_back(hWnd);
+                            return TRUE;
+                        };
+                        EnumChildWindows(hWnd, enumproc, (LPARAM)&list);
+                        if (list.empty())
+                            return false;
+                        return true;
+                    };
+
+                    auto FindChildWindow = [&enumChild](HWND hWnd, auto name)
+                    {
+                        if (!hWnd)
+                            return (HWND)nullptr;
+                        std::vector<HWND> childList;
+                        enumChild(hWnd, childList);
+                        for(auto& h : childList)
+                        {
+                            if (GetWindowClassName(h) == name)
+                                return h;
+                        }
+                        return (HWND)nullptr;
+                    };
+
+                    //从文件资源管理器窗口枚举TabWindow
+                    HWND duiHwnd = FindChildWindow(m_DUIList[tid].mainWnd, L"ShellTabWindowClass");
+                    //从DUIViewWndClassName枚举DirectUIHWND
+                    duiHwnd = FindChildWindow(duiHwnd, L"DUIViewWndClassName");
+                    duiHwnd = FindChildWindow(duiHwnd, L"DirectUIHWND");
+                    if(duiHwnd)
+                    {
+                        node.lineWnd = duiHwnd;
+                        //查找TreeView
+                        std::vector<HWND> childList;
+                        enumChild(hWnd, childList);
+                        for (auto& h : childList)
+                        {
+                            if (GetWindowClassName(h) == L"CtrlNotifySink")
+                            {
+                                HWND tree = FindChildWindow(h, L"NamespaceTreeControl");
+                                if (tree)
+                                    break;
+                            }
+                        }
+                        duiHwnd = FindChildWindow(duiHwnd, L"SysTreeView32");
+                        if(duiHwnd)
+                        {
+                            node.treeData.hWnd = duiHwnd;
+                            m_DUIList[tid].treeDraw = true;
+                        }
+                    }
+                }
+                lastDUI = hWnd;
             }
         }
         //查找主窗口
-        else if(ClassName == L"SHELLDLL_DefView" && GetWindowClassName(hWndParent) == L"ShellTabWindowClass")
+        else if (ClassName == L"SHELLDLL_DefView" && GetWindowClassName(hWndParent) == L"ShellTabWindowClass")
         {
-            HWND mainWnd =  GetParent(hWndParent);
+            HWND mainWnd = GetParent(hWndParent);
             //设置Blur
             SetWindowBlur(mainWnd);
 
@@ -475,21 +593,23 @@ namespace Hook
                 SetWindowSubclass(mainWnd, MyWndSubProc, 0, (DWORD_PTR)0);
             }
             //win 10
-            else if(g_sysBuildNumber < 22000)
+            else if (g_sysBuildNumber < 22000)
             {
                 SetWindowSubclass(mainWnd, MyWndSubProc, 0, (DWORD_PTR)1);
             }
+            else
+                SetWindowSubclass(mainWnd, MyWndSubProc, 0, (DWORD_PTR)3);
 
             //记录到列表中 Add to list
             DWORD tid = GetCurrentThreadId();
             m_DUIList[tid].mainWnd = mainWnd;
         }
-        else if (ClassName == L"DirectUIHWND" && GetWindowClassName(hWndParent) == L"DUIViewWndClassName")
+        /*else if (ClassName == L"DirectUIHWND" && GetWindowClassName(hWndParent) == L"DUIViewWndClassName")
         {
-            //SetWindowSubclass(hWnd, MyWndSubProc, 0, (DWORD_PTR)2);
-        }
+            SetWindowSubclass(hWnd, MyWndSubProc, 0, (DWORD_PTR)2);
+        }*/
         //导航树视图
-        else if (ClassName == L"SysTreeView32")
+        else if (ClassName == L"SysTreeView32" && lastDUI)
         {
             HWND parent = GetParent(hWndParent);//NamespaceTreeControl
             parent = GetParent(parent);         //CtrlNotifySink
@@ -498,14 +618,16 @@ namespace Hook
 
             if (!m_config.showLine)
             {
-                m_DUIList[tid].LineWnd = parent;
+                m_DUIList[tid].duiList[lastDUI].lineWnd = parent;
             }
-        	parent = GetParent(parent);         //DirectUIHWND
+            parent = GetParent(parent);         //DirectUIHWND
             parent = GetParent(parent);         //DUIViewWndClassName
             std::wstring mainWndCls = GetWindowClassName(parent);
 
             if (mainWndCls == L"ShellTabWindowClass")
-                m_DUIList[tid].TreeWnd = hWnd;
+                m_DUIList[tid].duiList[lastDUI].treeData.hWnd = hWnd;
+
+            lastDUI = nullptr;
         }
         return hWnd;
     }
@@ -516,32 +638,39 @@ namespace Hook
         auto iter = m_DUIList.find(GetCurrentThreadId());
         if (iter != m_DUIList.end())
         {
-            if (iter->second.hWnd == hWnd) {
-                m_DUIList.erase(iter);
+            auto _iter = iter->second.duiList.find(hWnd);
+            if(_iter != iter->second.duiList.end())
+            {
+                iter->second.duiList.erase(_iter);
+                //std::wcout << L"free:" << iter->second.duiList.size() << L"," << m_DUIList.size() << L"\n";
             }
+            //释放窗口列表node
+            if (iter->second.mainWnd == hWnd)
+                m_DUIList.erase(iter);
         }
         return _DestroyWindow_.Org(hWnd);
     }
 
     HDC MyBeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint)
     {
-        //开始绘制DUI窗口
-        HDC hDC = _BeginPaint_.Org(hWnd, lpPaint);
+        const HDC hDC = _BeginPaint_.Org(hWnd, lpPaint);
+        const auto iter = m_DUIList.find(GetCurrentThreadId());
 
-        auto iter = m_DUIList.find(GetCurrentThreadId());
+        if (iter == m_DUIList.end()) return hDC;
 
-        if (iter != m_DUIList.end()) {
-            if (iter->second.hWnd == hWnd)
+        for (auto& _iter : iter->second.duiList)
+        {
+            //DUI视图开始绘制
+            if (_iter.first == hWnd)
             {
-                iter->second.srcDC = hDC;
-                iter->second.hDC = hDC;
-                iter->second.treeDraw = false;
+                _iter.second.hDC = hDC;
+                break;
             }
-            else if (iter->second.TreeWnd == hWnd)
+            //TreeView开始绘制
+            if (_iter.second.treeData.hWnd == hWnd)
             {
-                iter->second.srcDC = hDC;
-                iter->second.hDC = hDC;
-                iter->second.treeDraw = true;
+                _iter.second.treeData.hDC = hDC;
+                break;
             }
         }
         return hDC;
@@ -552,31 +681,42 @@ namespace Hook
         DWORD curThread = GetCurrentThreadId();
         auto iter = m_DUIList.find(curThread);
 
-        if (iter != m_DUIList.end()) {
-            if (iter->second.hWnd == hWnd
-                || iter->second.TreeWnd == hWnd)
+        if (iter != m_DUIList.end()) 
+        {
+            //DUI
+            for (auto& _iter : iter->second.duiList)
             {
-                iter->second.srcDC = 0;
-                iter->second.hDC = 0;
-                iter->second.treeDraw = false;
-            }
-            else if(iter->second.LineWnd == hWnd)
-            {
-                RECT rcWind, rcTree, rcDst;
-                GetWindowRect(hWnd, &rcWind);
-                GetWindowRect(iter->second.TreeWnd, &rcTree);
-                rcDst.left = rcTree.left - rcWind.left;
-                rcDst.top = rcTree.top - rcWind.top;
-                rcDst.right = rcDst.left + (rcTree.right - rcTree.left) + 20;
-                rcDst.bottom = rcDst.top + (rcTree.bottom - rcTree.top);
-                FillRect(lpPaint->hdc, &rcDst, m_clearBrush);
-
-                if (iter->second.hWnd)
+                if (_iter.first == hWnd)
                 {
-                    GetWindowRect(iter->second.hWnd, &rcTree);
-                    rcDst.left = rcTree.left - rcWind.left + (rcTree.right - rcTree.left);
-                    rcDst.right = rcDst.left + 10;
-                    FillRect(lpPaint->hdc, &rcDst, m_clearBrush);
+                    _iter.second.hDC = nullptr;
+                    break;
+                }
+                if(_iter.second.treeData.hWnd == hWnd)
+                {
+	                _iter.second.treeData.hDC = nullptr;
+                    iter->second.treeDraw = false;
+	                break;
+                }
+                //清除分隔线
+                if(!m_config.showLine && _iter.second.lineWnd == hWnd)
+                {
+	                RECT rcWind, rcTree, rcDst;
+	                GetWindowRect(hWnd, &rcWind);
+	                GetWindowRect(_iter.second.treeData.hWnd, &rcTree);
+	                rcDst.left = rcTree.left - rcWind.left;
+	                rcDst.top = rcTree.top - rcWind.top;
+	                rcDst.right = rcDst.left + (rcTree.right - rcTree.left) + 20;
+	                rcDst.bottom = rcDst.top + (rcTree.bottom - rcTree.top);
+	                FillRect(lpPaint->hdc, &rcDst, m_clearBrush);
+
+	                if (_iter.first)
+	                {
+		                GetWindowRect(_iter.first, &rcTree);
+		                rcDst.left = rcTree.left - rcWind.left + (rcTree.right - rcTree.left);
+		                rcDst.right = rcDst.left + 10;
+		                FillRect(lpPaint->hdc, &rcDst, m_clearBrush);
+	                }
+                    break;
                 }
             }
         }
@@ -591,36 +731,41 @@ namespace Hook
 
     int MyFillRect(HDC hDC, const RECT* lprc, HBRUSH hbr)
     {
-        int ret = S_OK;
-
-        DWORD curThread = GetCurrentThreadId();
+	    DWORD curThread = GetCurrentThreadId();
 
         auto iter = m_DUIList.find(curThread);
-        if (iter != m_DUIList.end()) {
-            if (iter->second.hDC == hDC)
+        if (iter != m_DUIList.end()) 
+        {
+            for (auto& _iter : iter->second.duiList)
             {
-                ret = _FillRect_.Org(hDC, lprc, hbr);
+                if (_iter.second.hDC != hDC && _iter.second.treeData.hDC != hDC)
+                    continue;
+
+                int ret = _FillRect_.Org(hDC, lprc, m_clearBrush);
 
                 //刷新颜色值
                 if (iter->second.refresh)
                 {
-                    SendMessageW(iter->second.hWnd, WM_THEMECHANGED, 0, 0);
+                    SendMessageW(_iter.first, WM_THEMECHANGED, 0, 0);
 
                     //win11 22621.655 多标签页 第一次打开页面需要刷新
                     if (g_sysBuildNumber >= 22600)
                     {
                         SetWindowBlur(iter->second.mainWnd);
                     }
-                    InvalidateRect(iter->second.hWnd, nullptr, TRUE);
+                    InvalidateRect(_iter.first, nullptr, TRUE);
                     iter->second.refresh = false;
                 }
                 //判断树列表颜色是否被改变
-                if (iter->second.treeDraw)
-                {
+                //if (iter->second.treeDraw)
+                //{
                     COLORREF color = RGB(0, 0, 0);
-                    if (!CompareColor(TreeView_GetBkColor(iter->second.TreeWnd), color))
-                        TreeView_SetBkColor(iter->second.TreeWnd, color);
-                }
+                    if (TreeView_GetBkColor(_iter.second.treeData.hWnd) != color)
+                    {
+                        TreeView_SetBkColor(_iter.second.treeData.hWnd, color);
+                        std::wcout << L"ref\n";
+                    }
+                //}
                 return ret;
             }
         }
@@ -628,7 +773,8 @@ namespace Hook
         auto ribiter = m_ribbonPaint.find(curThread);
         if (ribiter != m_ribbonPaint.end())
         {
-            if (ribiter->second.second == hDC) {
+            if (ribiter->second.second == hDC)
+            {
                 RECT rcWnd;
                 GetWindowRect(ribiter->second.first, &rcWnd);
 
@@ -642,13 +788,14 @@ namespace Hook
                 }
             }
         }
-        return  _FillRect_.Org(hDC, lprc, hbr);
+        return _FillRect_.Org(hDC, lprc, hbr);
     }
 
     BOOL MyPatBlt(HDC hdc, int x, int y, int w, int h, DWORD rop)
     {
         //修复选择矩形框的Alpha
-        if (!IsExcludePath() && rop == PATCOPY) {
+        if (!IsExcludePath() && rop == PATCOPY)
+        {
             //检测调用线程
             static std::unordered_map<DWORD, bool> thList;
 
@@ -719,14 +866,14 @@ namespace Hook
         HRESULT hr = S_OK;
 
         auto fun = [&](HDC hDC)
-    	{
+        {
             hr = DrawTextWithGlow(hDC, lpchText, cchText, lprc, format,
                 GetTextColor(hdc), 0, 0, 0, 0,
                 [](HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPARAM lParam)
-				{
-					return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
-				}, 
-            0);
+                {
+                    return _DrawTextW_.Org(hdc, lpchText, cchText, lprc, format);
+                },
+                0);
 
         };
         if (!AlphaBuffer(hdc, lprc, fun))
@@ -794,7 +941,8 @@ namespace Hook
 
                 HRESULT hr = S_OK;
                 //合批绘制文本
-                auto fun = [&](HDC hDC) {
+                auto fun = [&](HDC hDC)
+            	{
                     std::wstring batchStr;
                     bool batch = true;
 
@@ -806,8 +954,10 @@ namespace Hook
                     RECT batchRc = rc;
                     for (int i = 0; i < c; i++)
                     {
-                        if (i != 0) {
-                            if (lpDx[i] == lpDx[i - 1]) {
+                        if (i != 0) 
+                        {
+                            if (lpDx[i] == lpDx[i - 1]) 
+                            {
                                 if (!batch)
                                 {
                                     batch = true;
@@ -822,7 +972,7 @@ namespace Hook
                                     crText, 0, 0, 0, 0, callback, 0);
                                 //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
 
-                            	batch = false;
+                                batch = false;
                                 batchStr = lpString[i];
                                 SetTextCharacterExtra(hDC, lpDx[i]);
                                 batchRc.left = rc.left;
@@ -832,7 +982,7 @@ namespace Hook
                         //最后一批
                         if (i == c - 1)
                         {
-                            hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE, 
+                            hr = DrawTextWithGlow(hDC, batchStr.c_str(), (int)batchStr.length(), &batchRc, DT_LEFT | DT_TOP | DT_SINGLELINE,
                                 crText, 0, 0, 0, 0, callback, 0);
                             //hr = _DrawThemeTextEx_.Org(hTheme, hDC, 0, 0, batchStr.c_str(), batchStr.length(), DT_LEFT | DT_TOP | DT_SINGLELINE, &batchRc, &dtop);
                         }
@@ -862,14 +1012,26 @@ namespace Hook
         //在绘制DUI之前 会调用CreateCompatibleDC 找到它
         HDC retDC = _CreateCompatibleDC_.Org(hDC);
         auto iter = m_DUIList.find(GetCurrentThreadId());
-        if (iter != m_DUIList.end()) {
-            if (iter->second.hDC == hDC) {
-                iter->second.hDC = retDC;
-                return retDC;
+        if (iter != m_DUIList.end()) 
+        {
+            HWND sHwnd = WindowFromDC(hDC);
+            for(auto& _iter : iter->second.duiList)
+            {
+	            if(sHwnd == _iter.first)
+	            {
+                    _iter.second.hDC = retDC;
+                    return retDC;
+	            }
+            	if(sHwnd == _iter.second.treeData.hWnd)
+                {
+                    _iter.second.treeData.hDC = retDC;
+                    return retDC;
+                }
             }
         }
         //Win10 Ribbon
-        if (g_sysBuildNumber < 22000) {
+        if (g_sysBuildNumber < 22000) 
+        {
             HWND wnd = WindowFromDC(hDC);
             if (wnd && GetWindowClassName(wnd) == L"NetUIHWND")
                 m_ribbonPaint[GetCurrentThreadId()] = std::make_pair(wnd, retDC);
@@ -890,8 +1052,9 @@ namespace Hook
         std::wstring kname = GetThemeClassName(hTheme);
 
         //将主要控件的背景色设置为黑色 以供API透明化Blur效果
-        if (iPropId == TMT_FILLCOLOR)
+        if (iPropId == TMT_FILLCOLOR && !IsExcludePath())
         {
+            //std::wcout << kname << L" p:" << iPartId << L" s:" << iStateId << std::endl;
             //DUI视图、底部状态栏、导航栏
             if (((kname == L"ItemsView" || kname == L"ExplorerStatusBar" || kname == L"ExplorerNavPane")
                 && (iPartId == 0 && iStateId == 0))
@@ -910,7 +1073,7 @@ namespace Hook
     HRESULT MyDrawThemeText(HTHEME hTheme, HDC hdc, int iPartId, int iStateId, LPCTSTR pszText,
         int cchText, DWORD dwTextFlags, DWORD dwTextFlags2, LPCRECT pRect)
     {
-	    DTTOPTS Options = { sizeof(DTTOPTS) };
+        DTTOPTS Options = { sizeof(DTTOPTS) };
         RECT Rect = *pRect;
 
         _GetThemeColor_.Org(hTheme, iPartId, iStateId, TMT_TEXTCOLOR, &Options.crText);
@@ -934,8 +1097,8 @@ namespace Hook
 
                 COLORREF color = pOptions->crText;
 
-                if(!(dwTextFlags & DTT_TEXTCOLOR))
-					_GetThemeColor_.Org(hTheme, iPartId, iStateId, TMT_TEXTCOLOR, &color);
+                if (!(dwTextFlags & DTT_TEXTCOLOR))
+                    _GetThemeColor_.Org(hTheme, iPartId, iStateId, TMT_TEXTCOLOR, &color);
 
                 ret = DrawTextWithGlow(hDC, pszText, cchText, pRect, dwTextFlags,
                     color, 0, 0, 0, 0, pOptions->pfnDrawTextCallback, pOptions->lParam);
@@ -949,9 +1112,58 @@ namespace Hook
 
             return ret;
         }
-        Org:
-            ret = _DrawThemeTextEx_.Org(hTheme, hdc, iPartId, iStateId, pszText, cchText, dwTextFlags, (LPRECT)pRect, pOptions);
+    Org:
+        ret = _DrawThemeTextEx_.Org(hTheme, hdc, iPartId, iStateId, pszText, cchText, dwTextFlags, (LPRECT)pRect, pOptions);
         return ret;
+    }
+
+    bool PaintScroll(HDC hdc, int iPartId, int iStateId, LPCRECT pRect)
+    {
+        if ((iPartId == SBP_UPPERTRACKVERT || iPartId == SBP_LOWERTRACKVERT
+            || iPartId == SBP_UPPERTRACKHORZ || iPartId == SBP_LOWERTRACKHORZ
+            || iPartId == SBP_ARROWBTN)
+            && (iStateId == 1 || iStateId == 2 || iStateId == 3 || iStateId == 5 || iStateId == 9 || iStateId == 13))
+        {
+            return true;
+        }
+        if (iPartId == SBP_THUMBBTNVERT || iPartId == SBP_THUMBBTNHORZ)
+        {
+            Gdiplus::Graphics draw(hdc);
+            draw.SetSmoothingMode(Gdiplus::SmoothingModeHighQuality);
+            UINT dpiY = GetDeviceCaps(hdc, LOGPIXELSY);
+            float roundValue = ((float)dpiY / 96.f) * (iStateId == 1 ? 3.f : 4.f);
+
+            Gdiplus::SolidBrush brush(Gdiplus::Color(135, 135, 135));
+
+            int x = pRect->left;
+            int y = pRect->top;
+            int width = pRect->right - pRect->left;
+            int height = pRect->bottom - pRect->top;
+
+            if (iPartId == SBP_THUMBBTNVERT)
+            {
+                int newWidth = int((float)width / (iStateId == 1 ? 2.4f : 1.8f));
+                x += (width - newWidth) / 2;
+                width = newWidth;
+            }
+            else
+            {
+                int newHeight = int((float)height / (iStateId == 1 ? 2.4f : 1.8f));
+                y += (height - newHeight) / 2;
+                height = newHeight;
+            }
+
+            Gdiplus::Rect rc(x, y, width, height);
+
+            RoundRectPath path(rc, roundValue);
+            Gdiplus::Rect rc1 = rc;
+            rc1.Width += (INT)roundValue;
+            RoundRectPath pathClip(rc1, roundValue);
+            draw.SetClip(&pathClip);
+            draw.FillPath(&brush, &path);
+            draw.ResetClip();
+            return true;
+        }
     }
 
     HRESULT MyDrawThemeBackground(HTHEME  hTheme,
@@ -965,10 +1177,22 @@ namespace Hook
         {
             std::wstring kname = GetThemeClassName(hTheme);
 
+            //td::wcout << kname << L" p:" << iPartId << L" s:" << iStateId << std::endl;
+
             if (kname == L"Rebar" && (iPartId == RP_BACKGROUND || iPartId == RP_BAND) && iStateId == 0)
             {
                 _FillRect_.Org(hdc, pRect, m_clearBrush);
                 return S_OK;
+            }
+            if (m_config.clearAddress && (kname == L"AddressBand" || kname == L"SearchBox")
+                && iPartId == 1 && (iStateId == 1 || iStateId == 2))
+            {
+                return S_OK;
+            }
+        	if (m_config.clearBarBg && kname == L"ScrollBar")
+            {
+                if (PaintScroll(hdc, iPartId, iStateId, pRect))
+                    return S_OK;
             }
         }
         return _DrawThemeBackground_.Org(hTheme, hdc, iPartId, iStateId, pRect, pClipRect);
@@ -983,9 +1207,9 @@ namespace Hook
         const DTBGOPTS* pOptions
     )
     {
+    	std::wstring kname = GetThemeClassName(hTheme);
         if (!IsExcludePath())
         {
-            std::wstring kname = GetThemeClassName(hTheme);
 
             //std::wcout << kname << L" p:" << iPartId << L" s:" << iStateId << std::endl;
 
@@ -1025,16 +1249,21 @@ namespace Hook
                     return S_OK;
                 }
             }
+            else if(m_config.clearBarBg && kname == L"ScrollBar")
+            {
+                if (PaintScroll(hdc, iPartId, iStateId, pRect))
+                    return S_OK;
+            }
         }
         return _DrawThemeBackgroundEx_.Org(hTheme, hdc, iPartId, iStateId, pRect, pOptions);
     }
 
-    HRESULT MyCoCreateInstance(const IID& rclsid, LPUNKNOWN pUnkOuter, 
+    HRESULT MyCoCreateInstance(const IID& rclsid, LPUNKNOWN pUnkOuter,
         DWORD dwClsContext, const IID& riid, LPVOID* ppv)
     {
         auto ret = _CoCreateInstance_.Org(rclsid, pUnkOuter, dwClsContext, riid, ppv);
 
-        if(m_config.darkRibbon && SUCCEEDED(ret) && rclsid == CLSID_UIRibbonFramework)
+        if (m_config.darkRibbon && SUCCEEDED(ret) && rclsid == CLSID_UIRibbonFramework)
         {
             IUIFramework* ribbon = (IUIFramework*)*ppv;
             IPropertyStore* prop = nullptr;
@@ -1045,7 +1274,7 @@ namespace Hook
             MH_CreateHook(hookProp->lpVtbl->SetValue, IPropertyStore_SetValue, (void**)&IPropertyStore_SetValue_ORG);
             MH_EnableHook(hookProp->lpVtbl->SetValue);
 
-            
+
             prop->Release();
             //std::wcout << "Create Ribbon\n";
         }
@@ -1061,7 +1290,7 @@ namespace Hook
             InitPropVariantFromBoolean(TRUE, &v);
             return IPropertyStore_SetValue_ORG(_this, key, v);
 
-			/*auto hookProp = (COMHook::IPropertyStore*)_this;
+            /*auto hookProp = (COMHook::IPropertyStore*)_this;
 
             hookProp->lpVtbl->Commit((IPropertyStore*)hookProp);
 

@@ -41,10 +41,7 @@ extern std::wstring GetWindowTitle(HWND hWnd);
 extern std::wstring GetWindowClassName(HWND hWnd);
 
 //读取配置文件内容
-extern std::wstring GetIniString(std::wstring FilePath, std::wstring AppName, std::wstring KeyName);
-
-//比较颜色
-extern bool CompareColor(COLORREF color1, COLORREF color2);
+extern std::wstring GetIniString(const std::wstring& FilePath, const std::wstring& AppName, const std::wstring& KeyName);
 
 //转换到小写
 extern std::wstring ConvertTolower(std::wstring str);
@@ -52,7 +49,7 @@ extern std::wstring ConvertTolower(std::wstring str);
 /*对指定窗口附加Aero效果
 * @param hwnd	 - 窗口句柄
 * @param win10	 - 是否使用win10函数
-* @param type	 - 效果类型 0=Blur 1=Acrylic 2=Mica (win10 1803以上可用)
+* @param type	 - 效果类型 0=Blur 1=Acrylic 2=Mica (win10 1803以上可用) 3=Acrylic Clear
 * @param color	 - 窗口背景混合色
 */
 extern void StartAero(HWND hwnd, int type, COLORREF color = 0, bool blend = false);
@@ -94,3 +91,41 @@ extern HRESULT DrawTextWithGlow
 
 //Exported entry 159. dwmapi.dll
 extern HRESULT DwmUpdateAccentBlurRect(HWND hWnd, RECT* prc);
+
+//获取系统颜色模式
+extern bool SysIsLightMode();
+
+class RoundRectPath : public Gdiplus::GraphicsPath
+{
+
+public:
+    RoundRectPath(Gdiplus::Rect rc, float round)
+    {
+        using namespace Gdiplus;
+        REAL x = (float)rc.X, y = (float)rc.Y;
+        REAL width = (float)rc.Width, height = (float)rc.Height;
+
+        REAL elWid = 2 * round;
+        REAL elHei = 2 * round;
+        //if (elWid > width) {
+        //    elWid = width;
+        //    elWid += elWid / 2;
+        //}
+        //if (elHei > height) {
+        //    elHei = height;
+        //    elHei += elHei / 2;
+        //}
+
+        AddArc(x, y, elWid, elHei, 180, 90); // 左上角圆弧
+        AddLine(x + round, y, x + width - round, y); // 上边
+        AddArc(x + width - elWid, y, elWid, elHei, 270, 90); // 右上角圆弧
+        AddLine(x + width, y + round, x + width, y + height - round);// 右边
+        AddArc(x + width - elWid, y + height - elHei, elWid, elHei, 0, 90); // 右下角圆弧
+        AddLine(x + width - round, y + height, x + round, y + height); // 下边
+        AddArc(x, y + height - elHei, elWid, elHei, 90, 90);
+        AddLine(x, y + round, x, y + height - round);
+
+        CloseAllFigures();
+
+    }
+};

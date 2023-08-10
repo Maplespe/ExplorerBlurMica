@@ -36,26 +36,27 @@ std::wstring GetWindowTitle(HWND hWnd)
 	int size = GetWindowTextLengthW(hWnd) + 1;
 	wchar_t* pText = new wchar_t[size];
 	GetWindowTextW(hWnd, pText, size);
-	return std::wstring(pText);
+	return pText;
 }
 
 std::wstring GetWindowClassName(HWND hWnd)
 {
 	wchar_t* pText = new wchar_t[MAX_PATH];
 	GetClassNameW(hWnd, pText, MAX_PATH);
-	return std::wstring(pText);
+	return pText;
 }
 
-std::wstring GetIniString(std::wstring FilePath, std::wstring AppName, std::wstring KeyName)
+std::wstring GetIniString(const std::wstring& FilePath, const std::wstring& AppName, const std::wstring& KeyName)
 {
-	if (FileIsExist(FilePath)) {
-		HANDLE pFile = CreateFileW(FilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (FileIsExist(FilePath)) 
+	{
+		HANDLE pFile = CreateFileW(FilePath.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		LARGE_INTEGER fileSize;
 		GetFileSizeEx(pFile, &fileSize);
 
 		wchar_t* data = new wchar_t[fileSize.QuadPart];
 		ZeroMemory(data, sizeof(wchar_t) * fileSize.QuadPart);
-		GetPrivateProfileStringW(AppName.c_str(), KeyName.c_str(), NULL, data, (DWORD)fileSize.QuadPart, FilePath.c_str());
+		GetPrivateProfileStringW(AppName.c_str(), KeyName.c_str(), nullptr, data, (DWORD)fileSize.QuadPart, FilePath.c_str());
 
 		std::wstring ret = data;
 		delete[] data;
@@ -63,14 +64,7 @@ std::wstring GetIniString(std::wstring FilePath, std::wstring AppName, std::wstr
 		CloseHandle(pFile);
 		return ret;
 	}
-	return std::wstring();
-}
-
-bool CompareColor(COLORREF color1, COLORREF color2)
-{
-	return GetRValue(color1) == GetRValue(color2)
-		&& GetGValue(color1) == GetGValue(color2)
-		&& GetBValue(color1) == GetBValue(color2);
+	return {};
 }
 
 std::wstring ConvertTolower(std::wstring str)
@@ -86,6 +80,7 @@ struct ACCENTPOLICY
 	int nColor;
 	int nAnimationId;
 };
+
 struct WINCOMPATTRDATA
 {
 	int nAttribute;
@@ -93,21 +88,22 @@ struct WINCOMPATTRDATA
 	ULONG ulDataSize;
 };
 
-typedef BOOL(WINAPI* pSetWindowCompositionAttribute)(HWND, WINCOMPATTRDATA*);
-const HINSTANCE hModule_User32 = LoadLibraryW(L"user32.dll");
-const pSetWindowCompositionAttribute SetWindowCompositionAttribute
-= (pSetWindowCompositionAttribute)GetProcAddress(hModule_User32, "SetWindowCompositionAttribute");
+typedef BOOL(WINAPI* PSWCA)(HWND, WINCOMPATTRDATA*);
+const auto SetWindowCompositionAttribute = (PSWCA)GetProcAddress(LoadLibraryW(L"user32.dll"), "SetWindowCompositionAttribute");
 
 void StartAero(HWND hwnd, int type, COLORREF color, bool blend)
 {
-	//win10未公开API https://hack.jp/?p=245
 	if (SetWindowCompositionAttribute)
 	{
+		//ACCENT_ENABLE_BLURBEHIND 3
+		//ACCENT_ENABLE_ACRYLICBLURBEHIND 4
 		ACCENTPOLICY policy = { type == 0 ? 3 : 4, 0, 0, 0 };
+		if (type == -1)
+			policy.nAccentState = 0;//ACCENT_DISABLED
 		if (blend)
 		{
 			policy.nFlags = 3;
-			policy.nColor = color;
+			policy.nColor = (int)color;
 		}
 		else if (type == 1)
 		{
@@ -204,19 +200,16 @@ UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal, bool offsets)
 {
 	static auto GetWindowDPI = [](HWND hwnd) -> UINT
 	{
-		typedef UINT(WINAPI* pfnGetWindowDPI)(HWND hwnd);
+		typedef UINT(WINAPI* pfnGetWindowDPI)(HWND);
 		static const auto& GetWindowDPI = (pfnGetWindowDPI)GetProcAddress(GetModuleHandleW(L"User32"), MAKEINTRESOURCEA(2707));
 		if (GetWindowDPI)
 		{
 			return GetWindowDPI(hwnd);
 		}
-		else
-		{
-			HDC hdc = GetDC(0);
-			int dpi = GetDeviceCaps(hdc, LOGPIXELSY);
-			ReleaseDC(0, hdc);
-			return (UINT)dpi;
-		}
+		HDC hdc = GetDC(nullptr);
+		int dpi = GetDeviceCaps(hdc, LOGPIXELSY);
+		ReleaseDC(0, hdc);
+		return (UINT)dpi;
 	};
 
 	// From UIRibbon.dll
@@ -234,7 +227,7 @@ UINT CalcRibbonHeightForDPI(HWND hWnd, UINT src, bool normal, bool offsets)
 				height -= offset;
 			else if (scale == 2.f)
 				height += 2;
-			else if(scale < 1.7)
+			else if(scale < 1.7f)
 				height -= 1;
 
 			return (UINT)height;
@@ -253,11 +246,11 @@ bool EnablePriviledge(LPCTSTR lpSystemName)
 	TOKEN_PRIVILEGES tkp = { 1 };
 	if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
 	{
-		if (LookupPrivilegeValue(NULL, lpSystemName, &tkp.Privileges[0].Luid))
+		if (LookupPrivilegeValue(nullptr, lpSystemName, &tkp.Privileges[0].Luid))
 		{
 			tkp.PrivilegeCount = 1;
 			tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-			AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0);
+			AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)nullptr, nullptr);
 			if (GetLastError() != ERROR_SUCCESS)
 			{
 				CloseHandle(hToken);
@@ -310,7 +303,7 @@ std::wstring RegGetSZ(HKEY hKey, LPCWSTR SubKey, LPCWSTR KeyName)
 	return ret;
 }
 
-HRESULT WINAPI _GetDpiForMonitor_(
+HRESULT WINAPI GetDpiForMonitor_(
 	_In_ HMONITOR hmonitor,
 	_In_ MONITOR_DPI_TYPE dpiType,
 	_Out_ UINT* dpiX,
@@ -347,11 +340,11 @@ void RefreshWin10BlurFrame(bool blurType)
 			HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
 			UINT dpiX = 96;
 			UINT dpiY = 96;
-			_GetDpiForMonitor_(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+			GetDpiForMonitor_(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
 
 			auto setreg = [dpiX](std::wstring value)
 			{
-				HKEY hKey = 0;
+				HKEY hKey = nullptr;
 				LSTATUS ret = RegOpenKeyExW(HKEY_CURRENT_USER, L"Control Panel\\Desktop\\WindowMetrics", 0, KEY_WRITE, &hKey);
 				if (ret == ERROR_SUCCESS) {
 					RegSetValueExW(hKey, L"PaddedBorderWidth", NULL, REG_SZ, (LPBYTE)value.c_str(), sizeof(wchar_t) * value.length());
@@ -431,4 +424,21 @@ HRESULT DwmUpdateAccentBlurRect(HWND hWnd, RECT* prc)
 		return pfun(hWnd, prc);
 	}
 	return E_NOTIMPL;
+}
+
+bool SysIsLightMode()
+{
+	DWORD value = 0;
+	DWORD size = sizeof(value);
+	auto state = RegGetValueW(
+		HKEY_CURRENT_USER,
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+		L"AppsUseLightTheme",
+		RRF_RT_REG_DWORD,
+		nullptr,
+		&value,
+		&size);
+	if (state == ERROR_SUCCESS)
+		return value == 1;
+	return true;
 }

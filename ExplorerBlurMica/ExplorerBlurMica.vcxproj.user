@@ -3,8 +3,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>WindowsRemoteDebugger</DebuggerFlavor>
     <RemoteDebuggerCommand>C:\Windows\explorer.exe</RemoteDebuggerCommand>
-    <RemoteDebuggerWorkingDirectory>C:\Users\Maple\Desktop\Files\ExplorerBlurMica</RemoteDebuggerWorkingDirectory>
-    <RemoteDebuggerServerName>192.168.188.129:4026</RemoteDebuggerServerName>
+    <RemoteDebuggerWorkingDirectory>C:\Users\None_Name\Desktop\Files\ExplorerBlurMica</RemoteDebuggerWorkingDirectory>
+    <RemoteDebuggerServerName>192.168.188.128:4026</RemoteDebuggerServerName>
     <RemoteDebuggerConnection>RemoteWithoutAuthentication</RemoteDebuggerConnection>
     <RemoteDebuggerAttach>true</RemoteDebuggerAttach>
   </PropertyGroup>

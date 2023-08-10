@@ -9,13 +9,12 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 ## 效果
 * 可选Blur、Acrylic或者Mica效果
 * 可自定义混合颜色
+* 亮/暗 颜色模式自适应
 
 ## 兼容性
 与 StartAllBack、OldNewExplorer等修改窗口样式的软件兼容.
 
 似乎还与第三方主题兼容!
-
-但目前与 [TranslucentFlyouts](https://github.com/ALTaleX531/TranslucentFlyouts) 存在冲突 (因为使用了相同的文本渲染技术)
 
 ## 目录
 - [预览](#预览)
@@ -30,7 +29,8 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 [config]
 effect=1
 showLine=false
-[blend]
+clearAddress=false
+[light]
 r=200
 g=200
 b=200
@@ -38,11 +38,22 @@ a=10
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204426.png)
 
+```ini
+[config]
+effect=3
+showLine=false
+clearAddress=true
+clearBarBg=true
+....
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/011806.png)
+
 Dark Mode
 ```ini
 [config]
 effect=2
 showLine=true
+clearAddress=false
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/22h2mica.jpg)
 
@@ -51,7 +62,8 @@ showLine=true
 [config]
 effect=0
 showLine=true
-[blend]
+clearAddress=false
+[light]
 r=255
 g=255
 b=255
@@ -68,7 +80,8 @@ effect=1
 smallBorder=false
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
@@ -82,7 +95,8 @@ effect=1
 smallBorder=false
 showLine=true
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
@@ -96,7 +110,8 @@ effect=1
 smallBorder=false
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=27
 g=179
 b=129
@@ -110,13 +125,30 @@ effect=0
 smallBorder=true
 showLine=false
 darkRibbon=true
-[blend]
+clearAddress=false
+[light]
 r=220
 g=220
 b=220
 a=120
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/203646.png)
+
+```ini
+[config]
+effect=1
+smallBorder=true
+showLine=false
+darkRibbon=true
+clearAddress=true
+clearBarBg=true
+[light]
+r=220
+g=220
+b=220
+a=120
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/003702.png)
 
 </details>
 
@@ -142,7 +174,8 @@ cmd: `regsvr32 /u "你的路径/ExplorerBlurMica.dll"`
 ## 配置文件
 ``` ini
 [config]
-#Effect type 0=blur(blur效果仅在win11 22H2之前系统版本有效) 1=acrylic 2=Mica(Mica仅在Windows 11有效)。
+#效果类型: 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
+#Blur仅在win11 22H2之前版本可用; Blur(Clear)在win10和win11都可用; Mica仅限win11可用
 effect=1
 #这是为了解决Windows 10下的模糊效果会使窗口的阴影也变得模糊的问题。
 #如果你使用Blur效果，你可以把它设置为true来缓解这个问题。
@@ -152,12 +185,26 @@ showLine=false
 #Ribbon的文本颜色和背景在Windows 10 Light模式下呈现不正确。
 #这个选项允许你将Ribbon设置为Dark模式，以缓解这一问题。
 darkRibbon=true
-[blend]
+#清除地址栏背景颜色
+#(注意:如果你使用了StartAllBack 请将"右侧经典搜索栏"选项关掉 否则它会覆盖本程序的效果)
+clearAddress=true
+#清除滚动条背景颜色
+#(注意:由于系统滚动条本身不透明 因此为了去除背景色 滚动条是由本程序自绘的 它可能和系统样式有所差别)
+clearBarBg=true
+[light]
+#系统颜色模式为Light(亮色)时的颜色
 #RGBA 颜色分量
-r=255
-g=255
-b=255
+r=220
+g=220
+b=220
 a=160
+[dark]
+#系统颜色模式为Dark(暗色)时的颜色
+r=0
+g=0
+b=0
+a=120
+
 ```
 
 修改完保存文件重新打开文件资源管理器窗口即可生效。

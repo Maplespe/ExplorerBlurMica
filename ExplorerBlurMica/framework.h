@@ -6,3 +6,4 @@
 
 extern HMODULE g_hModule;
 extern int g_sysBuildNumber;
+extern bool g_colorMode;
