@@ -741,7 +741,7 @@ namespace Hook
                 if (_iter.second.hDC != hDC && _iter.second.treeData.hDC != hDC)
                     continue;
 
-                int ret = _FillRect_.Org(hDC, lprc, iter->second.treeDraw ? m_clearBrush : hbr);
+                int ret = _FillRect_.Org(hDC, lprc, hbr);
 
                 //刷新颜色值
                 if (iter->second.refresh)
