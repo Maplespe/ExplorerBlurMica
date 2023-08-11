@@ -6,6 +6,12 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 | [中文](/README_ZH.md) | [English](/README.md) |
 本项目使用 [LGNU V3 license](/COPYING.LESSER).
 
+[![license](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+[![Github All Releases](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
+[![GitHub release](https://img.shields.io/github/release/Maplespe/ExplorerBlurMica.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases/latest)
+<img src="https://img.shields.io/badge/language-c++-F34B7D.svg"/>
+<img src="https://img.shields.io/github/last-commit/Maplespe/ExplorerBlurMica.svg"/>  
+
 ## 效果
 * 可选Blur、Acrylic或者Mica效果
 * 可自定义混合颜色
