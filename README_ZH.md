@@ -20,7 +20,7 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 ## 兼容性
 与 StartAllBack、OldNewExplorer等修改窗口样式的软件兼容.
 
-似乎还与第三方主题兼容!
+也与第三方主题兼容
 
 ## 目录
 - [预览](#预览)
@@ -31,51 +31,63 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 ## 预览
 <details><summary><b>Windows 11</b></summary>
 
+23H2 WinUI3
 ```ini
 [config]
 effect=1
-showLine=false
-clearAddress=false
-[light]
-r=200
-g=200
-b=200
-a=10
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204426.png)
-
-```ini
-[config]
-effect=3
-showLine=false
-clearAddress=true
 clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
+[light]
+r=255
+g=255
+b=255
+a=200
 ....
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/011806.png)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/012949.png)
 
 Dark Mode
 ```ini
 [config]
 effect=2
-showLine=true
-clearAddress=false
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/22h2mica.jpg)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/013256.png)
 
-*Blur效果仅在 22H2 之前版本系统有效
+22H2 XamlIslands
 ```ini
 [config]
-effect=0
-showLine=true
-clearAddress=false
+effect=1
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
 [light]
 r=255
 g=255
 b=255
-a=160
+a=200
+....
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/e0rgb255a160.jpg)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/152834.png)
+
+```ini
+[config]
+effect=1
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=false
+[light]
+r=255
+g=255
+b=255
+a=200
+....
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/152929.png)
+
 </details>
 
 <details><summary><b>Windows 10</b></summary>
@@ -83,78 +95,16 @@ a=160
 ```ini
 [config]
 effect=1
-smallBorder=false
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/201555.png)
-
-```ini
-[config]
-effect=1
-smallBorder=false
-showLine=true
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/201720.png)
-
-```ini
-[config]
-effect=1
-smallBorder=false
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=27
-g=179
-b=129
-a=50
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204114.png)
-
-```ini
-[config]
-effect=0
-smallBorder=true
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/203646.png)
-
-```ini
-[config]
-effect=1
-smallBorder=true
-showLine=false
-darkRibbon=true
-clearAddress=true
 clearBarBg=true
+clearAddress=true
+clearWinUIBg=false
 [light]
-r=220
-g=220
-b=220
-a=120
+r=222
+g=222
+b=222
+a=200
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/003702.png)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/230909.png)
 
 </details>
 
@@ -183,20 +133,13 @@ cmd: `regsvr32 /u "你的路径/ExplorerBlurMica.dll"`
 #效果类型: 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
 #Blur仅在win11 22H2之前版本可用; Blur(Clear)在win10和win11都可用; Mica仅限win11可用
 effect=1
-#这是为了解决Windows 10下的模糊效果会使窗口的阴影也变得模糊的问题。
-#如果你使用Blur效果，你可以把它设置为true来缓解这个问题。
-smallBorder=false
-#该选项指定是否在主视图的TreeView和预览面板之间显示一条分隔线。
-showLine=false
-#Ribbon的文本颜色和背景在Windows 10 Light模式下呈现不正确。
-#这个选项允许你将Ribbon设置为Dark模式，以缓解这一问题。
-darkRibbon=true
 #清除地址栏背景颜色
-#(注意:如果你使用了StartAllBack 请将"右侧经典搜索栏"选项关掉 否则它会覆盖本程序的效果)
 clearAddress=true
 #清除滚动条背景颜色
 #(注意:由于系统滚动条本身不透明 因此为了去除背景色 滚动条是由本程序自绘的 它可能和系统样式有所差别)
 clearBarBg=true
+#清除Windows11文件资源管理器的WinUI或XamlIslands部分的工具栏背景色
+clearWinUIBg=true
 [light]
 #系统颜色模式为Light(亮色)时的颜色
 #RGBA 颜色分量
@@ -218,4 +161,4 @@ a=120
 ## 其他
 依赖： [minhook](https://github.com/m417z/minhook).
 
-此项目是基于枫の美化工具箱独立出来的组件 [MyToolBox](https://winmoes.com/tools/12948.html).
+此项目是基于枫の美化工具箱独立出来的组件 [MToolBox](https://winmoes.com/tools/12948.html).

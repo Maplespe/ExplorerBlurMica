@@ -1,131 +1,227 @@
-/*
-* Hook函数定义
-*
-* Author: Maple
-* date: 2021-7-13 Create
-* Copyright winmoes.com
+﻿/**
+ * FileName: HookDef.h
+ *
+ * Copyright (C) 2022-2024 Maplespe、ALTaleX
+ *
+ * This file is part of MToolBox and ExplorerBlurMica.
+ * ExplorerBlurMica is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU Lesser General Public License as published by the Free Software Foundation, either version 3
+ * of the License, or any later version.
+ *
+ * ExplorerBlurMica is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License along with Foobar.
+ * If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
 */
-
 #pragma once
-#include "framework.h"
-#include "minhook\MinHook.h"
-#include "Helper.h"
+#include "Helper/DirectUIHelper.h"
+#include "HookHelper/MHookHelper.h"
+#include "DirectUITweaker.h"
 
-//刷新配置
-extern void RefreshConfig();
+namespace MBox
+{
+	extern bool g_enableCustomScrollBar;
+	extern bool g_enableClearAddress;
+	extern bool g_enableClearWinUI;
 
-namespace Hook {
+	void WINAPI My_DirectUI_Element_PaintBackground(
+		DirectUI::Element* This,
+		HDC hdc,
+		DirectUI::Value* value,
+		LPCRECT pRect,
+		LPCRECT pClipRect,
+		LPCRECT pExcludeRect,
+		LPCRECT pTargetRect
+	);
 
-    extern int hookIndex;
+	inline MiniHookDispatcher g_DirectUI_Element_PaintBackground_hookDispatcher =
+	{
+		DirectUI::g_pfnElement_PaintBackground,
+		std::array
+		{
+			detour_info(DTweaker::My_DirectUI_Element_PaintBackground_Filter, call_type::before),
+			detour_info(DTweaker::My_DirectUI_Element_PaintBackground_CleanUp, call_type::final),
+			detour_info(My_DirectUI_Element_PaintBackground, call_type::before)
+		}
+	};
 
-    inline void _HookError_()
-    {
-        MessageBoxW(0, (L"Failed to create hook <" + std::to_wstring(hookIndex) + L">").c_str(), L"ExplorerBlurMica Error", MB_ICONERROR | MB_OK);
-    }
+	void WINAPI My_DirectUI_Element_Paint(
+		DirectUI::Element* This,
+		HDC hdc,
+		LPCRECT pRect,
+		LPCRECT pClipRect,
+		LPCRECT pExcludeRect,
+		LPCRECT pTargetRect
+	);
 
-    template<typename T>
-    class HookFun
-    {
-    public:
-        HookFun(void* target, void* detour)
-        {
-            m_target = target;
-            m_detour = detour;
-        }
+	HRESULT WINAPI My_DwmExtendFrameIntoClientArea(
+		HWND hWnd,
+		const MARGINS* pMarInset
+	);
 
-        HookFun(LPCWSTR moduleName, LPCSTR funcName, void* detour)
-        {
-            m_moduleName = moduleName, m_funName = (LPSTR)funcName;
-            m_isModule = true;
-            m_detour = detour;
-        }
+	HRESULT WINAPI My_DwmExtendFrameIntoClientArea_startallback(
+		HWND hWnd,
+		const MARGINS* pMarInset
+	);
 
-        ~HookFun()
-        {
-            Detach();
-        }
+	HRESULT WINAPI MyDwmSetWindowAttribute(
+		HWND hwnd,
+		DWORD dwAttribute,
+		LPCVOID pvAttribute,
+		DWORD cbAttribute
+	);
 
-        void Attach()
-        {
-            MH_STATUS ret = MH_OK;
-            if (m_isModule)
-                ret = MH_CreateHookApi(m_moduleName.c_str(), m_funName, m_detour, (void**)&m_original);
-            else
-                ret = MH_CreateHook(m_target, m_detour, (void**)&m_original);
-            if (ret != MH_OK)
-            {
-                _HookError_();
-            }
-            else
-                m_isAttach = true;
+	HWND WINAPI My_CreateWindowExW_explorerframe(
+		DWORD     dwExStyle,
+		LPCWSTR   lpClassName,
+		LPCWSTR   lpWindowName,
+		DWORD     dwStyle,
+		int       X,
+		int       Y,
+		int       nWidth,
+		int       nHeight,
+		HWND      hWndParent,
+		HMENU     hMenu,
+		HINSTANCE hInstance,
+		LPVOID    lpParam
+	);
 
-            hookIndex++;
-        }
+	HWND WINAPI My_CreateWindowExW_dui70(
+		DWORD     dwExStyle,
+		LPCWSTR   lpClassName,
+		LPCWSTR   lpWindowName,
+		DWORD     dwStyle,
+		int       X,
+		int       Y,
+		int       nWidth,
+		int       nHeight,
+		HWND      hWndParent,
+		HMENU     hMenu,
+		HINSTANCE hInstance,
+		LPVOID    lpParam
+	);
 
-        void Detach()
-        {
-            if (m_isAttach)
-                MH_RemoveHook(m_target);
-        }
+	int WINAPI My_DrawTextW(
+		HDC hdc,
+		LPCWSTR lpchText,
+		int cchText,
+		LPRECT lprc,
+		UINT format
+	);
 
-        template <typename... Args>
-        inline auto Org(Args&& ... args)
-        {
-            return m_original(args...);
-        }
+	BOOL WINAPI My_ExtTextOutW(
+		HDC hdc,
+		int x,
+		int y,
+		UINT options,
+		const RECT* lprect,
+		LPCWSTR lpString,
+		UINT c,
+		const INT* lpDx
+	);
 
-    private:
+	HRESULT WINAPI My_DrawThemeText(
+		HTHEME  hTheme,
+		HDC     hdc,
+		int     iPartId,
+		int     iStateId,
+		LPCWSTR pszText,
+		int     cchText,
+		DWORD   dwTextFlags,
+		DWORD   dwTextFlags2,
+		LPCRECT pRect
+	);
 
-        std::wstring m_moduleName;
-        LPSTR m_funName;
+	HRESULT WINAPI My_DrawThemeTextEx(
+		HTHEME        hTheme,
+		HDC           hdc,
+		int           iPartId,
+		int           iStateId,
+		LPCWSTR       pszText,
+		int           cchText,
+		DWORD         dwTextFlags,
+		LPRECT        pRect,
+		const DTTOPTS* pOptions
+	);
 
-        bool m_isModule = false, m_isAttach = false;
-        void* m_target = nullptr;
-        void* m_detour = nullptr;
+	BOOL WINAPI My_InflateRect(
+		LPRECT lprc,
+		int dx,
+		int dy
+	);
 
-        T m_original = nullptr;
-    };
+	HWND WINAPI My_CreateWindowExW_shell32(
+		DWORD     dwExStyle,
+		LPCWSTR   lpClassName,
+		LPCWSTR   lpWindowName,
+		DWORD     dwStyle,
+		int       X,
+		int       Y,
+		int       nWidth,
+		int       nHeight,
+		HWND      hWndParent,
+		HMENU     hMenu,
+		HINSTANCE hInstance,
+		LPVOID    lpParam
+	);
 
-    //Window
-    extern HWND MyCreateWindowExW(DWORD, LPCWSTR, LPCWSTR, DWORD, int, int, int, int, HWND, HMENU, HINSTANCE, LPVOID);
-    extern BOOL MyDestroyWindow(HWND);
-
-    //Paint
-    extern HDC MyBeginPaint(HWND, LPPAINTSTRUCT);
-    extern BOOL MyEndPaint(HWND, const PAINTSTRUCT*);
-
-    //GDI Draw
-    extern int MyFillRect(HDC, const RECT*, HBRUSH);
-    extern BOOL MyPatBlt(HDC, int, int, int, int, DWORD);
-    extern int MyDrawTextW(HDC, LPCWSTR, int, LPRECT, UINT);
-    extern int MyDrawTextExW(HDC, LPWSTR, int, LPRECT, UINT, LPDRAWTEXTPARAMS);
-    extern BOOL MyExtTextOutW(HDC, int, int, UINT, const RECT*, LPCWSTR, UINT, const INT*);
-
-    //GDI Fun
-    extern HDC MyCreateCompatibleDC(HDC);
-
-    //Visual Theme
-    extern HRESULT MyGetThemeColor(HTHEME, int, int, int, COLORREF*);
-    extern HRESULT MyDrawThemeText(HTHEME, HDC, int, int, LPCTSTR, int, DWORD, DWORD, LPCRECT);
-    extern HRESULT MyDrawThemeTextEx(HTHEME, HDC, int, int, LPCTSTR, int, DWORD, LPCRECT, const DTTOPTS*);
-    extern HRESULT MyDrawThemeBackground(HTHEME, HDC, int, int, LPCRECT, LPCRECT);
-    extern HRESULT MyDrawThemeBackgroundEx(HTHEME, HDC, int, int, LPCRECT, const DTBGOPTS*);
-
-    //Ribbon
-    extern HRESULT MyCoCreateInstance(const IID&, LPUNKNOWN, DWORD, const IID&, LPVOID*);
-    extern HRESULT IPropertyStore_SetValue(void*, const PROPERTYKEY&, const PROPVARIANT&);
-
-    template<typename T>
-    inline auto HookDef(T tar, void* det)
-    {
-        return HookFun<T>(tar, det);
-    }
-    template<typename T>
-    inline auto HookDef(LPCWSTR mname, LPCSTR fname, T det)
-    {
-        return HookFun<T>(mname, fname, det);
-    }
-
-    extern void HookAttachAll();
-    extern void HookDetachAll();
+	//RibbonTweaker
+	namespace RibbonTweaker
+	{
+		HDC WINAPI My_BeginPaint(
+			HWND hWnd,
+			LPPAINTSTRUCT lpPaint
+		);
+		int WINAPI My_FillRect(
+			HDC hDC,
+			const RECT* lprc,
+			HBRUSH hbr
+		);
+		int WINAPI My_DrawTextW(
+			HDC hdc,
+			LPCWSTR lpchText,
+			int cchText,
+			LPRECT lprc,
+			UINT format
+		);
+		BOOL WINAPI My_StretchBlt(
+			HDC   hdcDest,
+			int   xDest,
+			int   yDest,
+			int   wDest,
+			int   hDest,
+			HDC   hdcSrc,
+			int   xSrc,
+			int   ySrc,
+			int   wSrc,
+			int   hSrc,
+			DWORD rop
+		);
+		BOOL WINAPI My_BitBlt(
+			HDC   hdc,
+			int   x,
+			int   y,
+			int   cx,
+			int   cy,
+			HDC   hdcSrc,
+			int   x1,
+			int   y1,
+			DWORD rop
+		);
+		BOOL WINAPI My_GdiAlphaBlend(
+			HDC           hdcDest,
+			int           xoriginDest,
+			int           yoriginDest,
+			int           wDest,
+			int           hDest,
+			HDC           hdcSrc,
+			int           xoriginSrc,
+			int           yoriginSrc,
+			int           wSrc,
+			int           hSrc,
+			BLENDFUNCTION ftn
+		);
+	}
 }

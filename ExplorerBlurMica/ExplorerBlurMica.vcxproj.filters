@@ -19,6 +19,18 @@
     <Filter Include="minhook\hde">
       <UniqueIdentifier>{c5cf282b-bde1-4a21-824c-d72735dc68dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\HookHelper">
+      <UniqueIdentifier>{8237ab45-b664-4135-aef9-2e995b5f8b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\HookHelper">
+      <UniqueIdentifier>{f1b50e42-7b0e-4b98-9070-cc5071280c46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\Helper">
+      <UniqueIdentifier>{aeaedad3-131a-43b2-affd-96e31008f50d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\Helper">
+      <UniqueIdentifier>{14eb13aa-231d-4c06-8f15-4b84351e23ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -48,19 +60,73 @@
     <ClInclude Include="minhook\MinHook.h">
       <Filter>minhook</Filter>
     </ClInclude>
-    <ClInclude Include="ShellLoader.h">
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslucentImpl.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="HookDef.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Helper.h">
+    <ClInclude Include="HookHelper\HookHelper.h">
+      <Filter>头文件\HookHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="HookHelper\MHookHelper.h">
+      <Filter>头文件\HookHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="HookHelper\IATHookHelper.h">
+      <Filter>头文件\HookHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\DirectUIHelper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\Win32Helper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\ThemeHelper.h">
+      <Filter>头文件\HookHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowListener.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="MenuToolBarTweaker.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ComHookDef.h">
+    <ClInclude Include="DirectUITweaker.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\GraphicsHelper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="RibbonTweaker.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\VersionHelper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="MiscTweaker.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="xamldiagnostics.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\WinRTHelper.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="tapsite.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="visualtreewatcher.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\comdef.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="Helper\DllNotifyRoutine.h">
+      <Filter>头文件\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="module.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -83,13 +149,55 @@
     <ClCompile Include="minhook\hde\hde64.cpp">
       <Filter>minhook\hde</Filter>
     </ClCompile>
-    <ClCompile Include="ShellLoader.cpp">
+    <ClCompile Include="TranslucentImpl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="HookDef.cpp">
+    <ClCompile Include="HookHelper\HookHelper.cpp">
+      <Filter>源文件\HookHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="HookHelper\MHookHelper.cpp">
+      <Filter>源文件\HookHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper\Win32Helper.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper\ThemeHelper.cpp">
+      <Filter>源文件\HookHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="HookHelper\IATHookHelper.cpp">
+      <Filter>源文件\HookHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowListener.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Helper.cpp">
+    <ClCompile Include="MenuToolBarTweaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectUITweaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper\GraphicsHelper.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="RibbonTweaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MiscTweaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="xamldiagnostics.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="tapsite.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="visualtreewatcher.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Helper\DllNotifyRoutine.cpp">
+      <Filter>源文件\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="module.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,6 +205,7 @@
     <None Include="Source.def">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ExplorerBlurMica.rc">

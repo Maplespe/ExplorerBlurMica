@@ -3,7 +3,18 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <string>
+#include <atomic>
+#include <functional>
+#include <stdexcept>
+#include <array>
+#include <memory>
+#include <mutex>
 
-extern HMODULE g_hModule;
-extern int g_sysBuildNumber;
-extern bool g_colorMode;
+#include <dwmapi.h>
+#include <CommCtrl.h>
+#include <shlwapi.h>
+#include <Uxtheme.h>
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "Comctl32.lib")
+#pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "uxtheme.lib")

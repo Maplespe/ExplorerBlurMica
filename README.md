@@ -20,7 +20,7 @@ This project uses [LGNU V3 license](/COPYING.LESSER).
 ## Compatibility
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
 
-It also seems to be compatible with third-party themes!
+It is also compatible with third-party themes.
 
 ## Catalog
 - [Overview](#overview)
@@ -31,52 +31,63 @@ It also seems to be compatible with third-party themes!
 ## Overview
 <details><summary><b>Windows 11</b></summary>
 
+23H2 WinUI3
 ```ini
 [config]
 effect=1
-showLine=false
-clearAddress=false
-[light]
-r=200
-g=200
-b=200
-a=10
-....
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204426.png)
-
-```ini
-[config]
-effect=3
-showLine=false
-clearAddress=true
 clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
+[light]
+r=255
+g=255
+b=255
+a=200
 ....
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/011806.png)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/012949.png)
 
 Dark Mode
 ```ini
 [config]
 effect=2
-showLine=true
-clearAddress=false
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/22h2mica.jpg)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/013256.png)
 
-*Blur effect is only available before 22H2
+22H2 XamlIslands
 ```ini
 [config]
-effect=0
-showLine=true
-clearAddress=false
+effect=1
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=true
 [light]
 r=255
 g=255
 b=255
-a=160
+a=200
+....
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/e0rgb255a160.jpg)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/152834.png)
+
+```ini
+[config]
+effect=1
+clearBarBg=true
+clearAddress=true
+clearWinUIBg=false
+[light]
+r=255
+g=255
+b=255
+a=200
+....
+```
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/152929.png)
+
 </details>
 
 <details><summary><b>Windows 10</b></summary>
@@ -84,78 +95,16 @@ a=160
 ```ini
 [config]
 effect=1
-smallBorder=false
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/201555.png)
-
-```ini
-[config]
-effect=1
-smallBorder=false
-showLine=true
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/201720.png)
-
-```ini
-[config]
-effect=1
-smallBorder=false
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=27
-g=179
-b=129
-a=50
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/204114.png)
-
-```ini
-[config]
-effect=0
-smallBorder=true
-showLine=false
-darkRibbon=true
-clearAddress=false
-[light]
-r=220
-g=220
-b=220
-a=120
-```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/203646.png)
-
-```ini
-[config]
-effect=1
-smallBorder=true
-showLine=false
-darkRibbon=true
-clearAddress=true
 clearBarBg=true
+clearAddress=true
+clearWinUIBg=false
 [light]
-r=220
-g=220
-b=220
-a=120
+r=222
+g=222
+b=222
+a=200
 ```
-![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/003702.png)
+![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/230909.png)
 
 </details>
 
@@ -184,21 +133,14 @@ Note: If something happens that crashes Explorer, press and hold the `ESC` key t
 #Effect type 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
 #Blur is only available until win11 22h2, Blur (Clear) is available in both win10 and win11, Mica is win11 only.
 effect=1
-#This is to solve the problem that Blur effect under Windows 10 will make the window shadow also be blurred.
-#If you use the Blur effect you can set it to true to alleviate this.
-smallBorder=false
-#This option specifies whether to show a separator line between the TreeView and the preview panel in the main view.
-showLine=false
-#Ribbon text colors and backgrounds are rendered incorrectly in Windows 10 Light mode.
-#This option allows you to set the ribbon to dark mode to alleviate this problem.
-darkRibbon=true
 #Clear the background of the address bar.
-#(Note: If you use StartAllBack, you must close the "Classic search box", otherwise it overrides the effect of this program).
 clearAddress=true
 #Clear the background color of the scrollbar.
 #(Note: Since the system scrollbar itself has a background color that cannot be removed,
 # when this option is turned on, the scrollbar is drawn by the program and the style may be different from the system).
 clearBarBg=true
+#Remove the toolbar background color from the WinUI or XamlIslands section of Windows 11.
+clearWinUIBg=true
 [light]
 #The system color scheme is the color in Light mode.
 #RGBA component of background blend color
@@ -219,4 +161,4 @@ Save the configuration after modification and reopen the File Explorer window to
 ## Other
 Dependent on [minhook](https://github.com/m417z/minhook).
 
-This project is an independent component based on the code in the [MyToolBox](https://winmoes.com/tools/12948.html).
+This project is an independent component based on the code in the [MToolBox](https://winmoes.com/tools/12948.html).

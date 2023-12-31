@@ -4,6 +4,54 @@ https://github.com/Maplespe/ExplorerBlurMica
 
 更新日志(update log)：
 
+2.0.0 2024-1-1
+此版本我们重构了整个项目 从0开始全部重写 着重优化了稳定性和性能 #34
+
+增加新的配置文件选项:
+- clearWinUIBg : 清除Windows11的WinUI和Xaml工具栏背景
+
+配置文件变更:
+删除了[smallBorder]、[showLine]、[darkRibbon]配置选项
+
+bug修复:
+修复了Windows 10 Ribbon的渲染问题 因此删除了darkRibbon选项 因为它不再有意义
+修复了Windows 11 23H2、Dev、Canary的兼容问题 支持了新版使用WinUI工具栏的文件资源管理器 #39 #59 #62 #65 #67
+修复了控制面板的绝大部分控件的渲染问题(有少部分古老的组件无法修复 维护他们非常困难) #22 #38 #54 #56 #66 #70 #71 #77
+修复了预览面板窗口控件文本渲染异常的问题 也支持了WinUI版本的预览面板 #41
+修复了使用自绘滚动条(clearBarBg)导致地址栏下拉菜单滚动条颜色异常的问题 #53
+修复了Windows 10 新版搜索框(BingSearchSuggestionsBox)的渲染问题
+改进了组件的加载方式、弃用BHO方法 改用FolderExtension的COM组件方式加载  #58 #63 #79
+改进了与StartAllback的兼容性问题 包括其他未提到的第三方软件等 #25 #28 #55 #73 #75
+优化了TreeView与DUI视图之间的分割线 我们使其颜色与工具栏线条一致 符合视觉标准 因此删除了[showline]选项
+
+其他:
+从此版本开始 我们不再发布完整的源代码(*.cpp) 但保留部分头文件(*.h) 因为我们发现有人违反其开源协议
+真正了解其原理的人即使只有头文件定义 也能理解其思路，而不是将我的项目改一个名称和CLSID成为其他付费软件
+
+
+In this version, we refactored the whole project, rewriting it from scratch and focusing on optimizing stability and performance. #34
+
+Add new feature settings:
+- clearWinUIBg : Clear WinUI and Xaml toolbar backgrounds for Windows 11.
+
+Configuration file changes:
+Removed [smallBorder], [showLine], [darkRibbon] configuration options.
+
+Bug fixes:
+Fixed Windows 10 Ribbon rendering issues, so removed the darkRibbon option because it no longer makes sense.
+Fixed Windows 11 23H2, Dev, Canary compatibility issue, supported new version of File Explorer with WinUI toolbar.(#39 #59 #62 #65 #67)
+Fixed rendering issues for most controls in the control panel (a few old components could not be fixed because they were very difficult to maintain).(#22 #38 #54 #56 #66 #70 #71 #77)
+Fixed text rendering exception of Preview Panel window control, also supports WinUI version of Preview Panel.(#41)
+Fixed the problem that using clearBarBg causes the color of the scrollbar in the address bar dropdown to be wrong.(#53)
+Fixed a rendering issue with the new version of BingSearchSuggestionsBox for Windows 10.
+Improved the component loading method, abandoned the BHO method, and used the COM component loading method of FolderExtension instead.(#58 #63 #79)
+Improved compatibility with StartAllback, including other unmentioned third-party software.(#25 #28 #55 #73 #75)
+Optimized the split line between TreeView and DUI view We made its color consistent with the toolbar line to meet the visual standard, so we removed the [showline] option.
+
+Other:
+Starting from this version, we don't release the full source code (*.cpp) but we keep some of the header files (*.h) because we found people violating the open source agreement.
+People who really understand how it works, even with just the header definitions, can understand the idea, rather than changing the name or CLSID of my project to make it a new piece of payware or part of it!
+
 1.0.7 2023-8-11
 增加新的配置文件选项:
 - clearAddress : 清除地址栏背景颜色
