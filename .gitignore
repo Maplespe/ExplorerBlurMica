@@ -12,3 +12,12 @@
 /ExplorerBlurMica/x64/Debug
 /build/x64/Debug
 /build/x64/Release_x64.zip
+*.cpp
+/packages
+/ExplorerBlurMica/HookHelper
+/ExplorerBlurMica/old
+/ExplorerBlurMica/Helper/DirectUIHelper.h
+/ExplorerBlurMica/dllmain.cpp
+/build/x64/Release/ExplorerBlurMica.pri
+/build/x64/Release/Microsoft.WindowsAppRuntime.Bootstrap.dll
+/screenshot/new
