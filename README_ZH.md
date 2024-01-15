@@ -17,6 +17,8 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 * 可自定义混合颜色
 * 亮/暗 颜色模式自适应
 
+此项目仅针对Explorer，如果您想将效果应用到全局，请看看我们的另一个项目[DWMBlurGlass](https://github.com/Maplespe/DWMBlurGlass).
+
 ## 兼容性
 与 StartAllBack、OldNewExplorer等修改窗口样式的软件兼容.
 
