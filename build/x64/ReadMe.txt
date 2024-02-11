@@ -4,6 +4,19 @@ https://github.com/Maplespe/ExplorerBlurMica
 
 更新日志(update log)：
 
+2.0.1 2024-2-12
+兼容了Windows 11 Preview Canary 23H2 26040和24H2 26052
+优化了与StartAllBack的兼容性
+修复了使用Mica效果下重启后第一次打开标题栏出现白条
+增加了MicaAlt效果选项 使用'effect=4'来启用 现在'effect=2'为普通Mica效果
+恢复了'showLine'选项 现在可以通过'showLine=true'来隐藏TreeView与DUI视图之间的分割线
+
+Compatible with Windows 11 Preview Canary 23H2 26040 and 24H2 26052.
+Optimized compatibility with StartAllBack.
+Fixed the opaque color of the title bar when opening it for the first time after reboot using the Mica effect.
+Added MicaAlt effect option Use 'effect=4' to enable now 'effect=2' for normal Mica effect.
+The 'showLine' option has been restored It is now possible to hide the split line between the TreeView and the DUI view with 'showLine=true'.
+
 2.0.0 2024-1-1
 此版本我们重构了整个项目 从0开始全部重写 着重优化了稳定性和性能 #34
 
@@ -25,6 +38,7 @@ bug修复:
 优化了TreeView与DUI视图之间的分割线 我们使其颜色与工具栏线条一致 符合视觉标准 因此删除了[showline]选项
 从1.0.6版本开始就已修复了Windows 10 Acrylic模糊效果超出边界的问题，
 通过缩小边框来缓解这个问题的方法已经不在有意义 因此也删除了[smallBorder]选项
+性能和稳定性优化(2024-1-3日追加)
 
 其他:
 从此版本开始 我们不再发布完整的源代码(*.cpp) 但保留部分头文件(*.h) 因为我们发现有人违反其开源协议
@@ -51,6 +65,7 @@ Improved compatibility with StartAllback, including other unmentioned third-part
 Optimized the split line between TreeView and DUI view We made its color consistent with the toolbar line to meet the visual standard, so we removed the [showline] option.
 Since version 1.0.6 the problem with the Windows 10 Acrylic blur effect going beyond the border has been fixed.
 It no longer makes sense to mitigate this issue by reducing the border so the [smallBorder] option has also been removed.
+Performance and stability optimizations (added on 2024-1-3).
 
 Other:
 Starting from this version, we don't release the full source code (*.cpp) but we keep some of the header files (*.h) because we found people violating the open source agreement.

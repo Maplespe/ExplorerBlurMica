@@ -25,6 +25,7 @@ namespace MBox
 	extern bool g_enableCustomScrollBar;
 	extern bool g_enableClearAddress;
 	extern bool g_enableClearWinUI;
+	extern bool g_enableShowLine;
 
 	void WINAPI My_DirectUI_Element_PaintBackground(
 		DirectUI::Element* This,

@@ -4,5 +4,6 @@
 namespace MBox
 {
 	void Startup();
+	void StartupPart();
 	void Shutdown();
 }
