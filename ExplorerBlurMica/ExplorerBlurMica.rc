@@ -25,8 +25,8 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
- PRODUCTVERSION 2,0,0,0
+ FILEVERSION 2,0,1,0
+ PRODUCTVERSION 2,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -43,12 +43,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "ExplorerBlurMica"
             VALUE "FileDescription", "https://github.com/Maplespe/ExplorerBlurMica/"
-            VALUE "FileVersion", "2.0.0.0"
+            VALUE "FileVersion", "2.0.1.0"
             VALUE "InternalName", "ExplorerBlurMica.dll"
             VALUE "LegalCopyright", "Copyright (C) Maplespe 2022-2024"
             VALUE "OriginalFilename", "ExplorerBlurMica.dll"
             VALUE "ProductName", "ExplorerBlurMica"
-            VALUE "ProductVersion", "2.0.0.0"
+            VALUE "ProductVersion", "2.0.1.0"
         END
     END
     BLOCK "VarFileInfo"

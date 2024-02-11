@@ -132,7 +132,7 @@ cmd: `regsvr32 /u "你的路径/ExplorerBlurMica.dll"`
 ## 配置文件
 ``` ini
 [config]
-#效果类型: 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
+#效果类型: 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear) 4=MicaAlt
 #Blur仅在win11 22H2之前版本可用; Blur(Clear)在win10和win11都可用; Mica仅限win11可用
 effect=1
 #清除地址栏背景颜色
@@ -142,6 +142,8 @@ clearAddress=true
 clearBarBg=true
 #清除Windows11文件资源管理器的WinUI或XamlIslands部分的工具栏背景色
 clearWinUIBg=true
+#显示TreeView和DUIView之间的分隔线
+showLine=true
 [light]
 #系统颜色模式为Light(亮色)时的颜色
 #RGBA 颜色分量

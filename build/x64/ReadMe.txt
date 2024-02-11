@@ -11,11 +11,17 @@ https://github.com/Maplespe/ExplorerBlurMica
 增加了MicaAlt效果选项 使用'effect=4'来启用 现在'effect=2'为普通Mica效果
 恢复了'showLine'选项 现在可以通过'showLine=true'来隐藏TreeView与DUI视图之间的分割线
 
+更新了和优化注册和卸载脚本
+感谢: OnCloud125252
+
 Compatible with Windows 11 Preview Canary 23H2 26040 and 24H2 26052.
 Optimized compatibility with StartAllBack.
 Fixed the opaque color of the title bar when opening it for the first time after reboot using the Mica effect.
 Added MicaAlt effect option Use 'effect=4' to enable now 'effect=2' for normal Mica effect.
 The 'showLine' option has been restored It is now possible to hide the split line between the TreeView and the DUI view with 'showLine=true'.
+
+Updated and optimized registration and uninstall scripts
+Thanks to: OnCloud125252.
 
 2.0.0 2024-1-1
 此版本我们重构了整个项目 从0开始全部重写 着重优化了稳定性和性能 #34

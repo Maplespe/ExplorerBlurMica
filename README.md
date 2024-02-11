@@ -132,7 +132,7 @@ Note: If something happens that crashes Explorer, press and hold the `ESC` key t
 ## Config
 ``` ini
 [config]
-#Effect type 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear)
+#Effect type 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear) 4=MicaAlt
 #Blur is only available until win11 22h2, Blur (Clear) is available in both win10 and win11, Mica is win11 only.
 effect=1
 #Clear the background of the address bar.
@@ -143,6 +143,8 @@ clearAddress=true
 clearBarBg=true
 #Remove the toolbar background color from the WinUI or XamlIslands section of Windows 11.
 clearWinUIBg=true
+#Show split line between TreeView and DUIView.
+showLine=true
 [light]
 #The system color scheme is the color in Light mode.
 #RGBA component of background blend color

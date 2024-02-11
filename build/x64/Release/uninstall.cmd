@@ -16,7 +16,6 @@ if %errorlevel% == 0 (
 	regsvr32 /u "%~dp0ExplorerBlurMica.dll"
     echo.
 ) else (
-	echo ���Թ���Ա��������! 
 	echo Please run as Administrator
 )
 
