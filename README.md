@@ -17,6 +17,8 @@ This project uses [LGNU V3 license](/COPYING.LESSER).
 * Custom blend colors are available.
 * Light/Dark Mode Adaptive.
 
+This project is for Explorer only, if you want to apply the effect globally, take a look at our other project [DWMBlurGlass](https://github.com/Maplespe/DWMBlurGlass).
+
 ## Compatibility
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
 
