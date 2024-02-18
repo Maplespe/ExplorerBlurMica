@@ -126,7 +126,7 @@ class App(customtkinter.CTk):
 
     def install(a):
         print(mode, clearAddress, clearBarBg, clearWinUIBg, showLine)
-        f = open('src\\config.ini', "w")
+        f = open('config.ini', "w")
         f.write("[config]\n")
         f.write("effect=" + mode + "\n")
         f.write("clearAddress=" + clearAddress + "\n")
@@ -144,10 +144,10 @@ g=0
 b=0
 a=120''')
         f.close()
-        subprocess.Popen(".\\src\\register.cmd", shell=True)
+        subprocess.Popen(".\\register.cmd", shell=True)
         return
     def remove(a):
-        subprocess.Popen(".\\src\\uninstall.cmd", shell=True)
+        subprocess.Popen(".\\uninstall.cmd", shell=True)
         return
 
 if __name__ == "__main__":
