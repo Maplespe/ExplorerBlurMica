@@ -163,6 +163,7 @@ a=120
 Save the configuration after modification and reopen the File Explorer window to take effect.
 
 ## Other
-Dependent on [minhook](https://github.com/m417z/minhook).
+The GUI running on Python.
+Dependent on [minhook](https://github.com/m417z/minhook) and [customtkinter](https://github.com/TomSchimansky/CustomTkinter).
 
 This project is an independent component based on the code in the [MToolBox](https://winmoes.com/tools/12948.html).
