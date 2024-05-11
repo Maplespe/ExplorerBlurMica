@@ -4,7 +4,7 @@ Windows 10 ve 11 için Dosya Gezginine Bulanık, Akrilik veya Mika arka plan efe
 给文件资源管理器添加背景模糊效果或Acrylic、Mica效果 适用于win10和win11
 #
 | [中文](/README_ZH.md) | [English](/README.md) |
-Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
+Bu proje [LGNU V3 lisansı](/COPYING.LESSER)nı kullanmaktadır.
 
 [![Lisans](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Github Tüm Yayınlar](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
@@ -135,25 +135,25 @@ Not: Eğer Dosya Gezginini çökerten bir şey olursa, Dosya Gezginini açmak ve
 #Etki türü 0=Bulanık 1=Akrilik 2=Mika 3=Bulanık(Açık) 4=MikaAlt
 #Blur is only available until win11 22h2, Blur (Clear) is available in both win10 and win11, Mica is win11 only.
 effect=1
-#Clear the background of the address bar.
+#Adres çubuğunun arka planını kaldır.
 clearAddress=true
-#Clear the background color of the scrollbar.
-#(Note: Since the system scrollbar itself has a background color that cannot be removed,
-# when this option is turned on, the scrollbar is drawn by the program and the style may be different from the system).
+#Kaydırma çubuğunun arka planını kaldır.
+#(Not: Sistem kaydırma çubuğunun kendi kaldırılamayan bir arka plan rengine sahip olduğundan,
+# bu seçenek açıldığında, kaydırma çubuğu program tarafından çizilir ve stil sistemden farklı olabilir).
 clearBarBg=true
-#Remove the toolbar background color from the WinUI or XamlIslands section of Windows 11.
+#Araç çubuğu arka plan rengini Windows 11'in WinUI veya XamlIslands bölümünden kaldır.
 clearWinUIBg=true
-#Show split line between TreeView and DUIView.
+#TreeView ve DUIView arasında bölünmüş çizgiyi göster.
 showLine=true
 [light]
-#The system color scheme is the color in Light mode.
-#RGBA component of background blend color
+#Sistem renk düzeni Açık moddaki renktir.
+#Arka plan karışım renginin #RGBA bileşeni
 r=220
 g=220
 b=220
 a=160
 [dark]
-#The system color scheme is the color in Dark mode.
+#Sistem renk düzeni Koyu moddaki renktir.
 r=0
 g=0
 b=0
@@ -162,8 +162,8 @@ a=120
 
 Değişiklikten sonra yapılandırmayı kaydedin ve etkili olması için Dosya Gezgini penceresini yeniden açın.
 
-## Other
+## Diğer
 Grafik kullanıcı arayüzü Python'da çalışmaktadır.
-minhook](https://github.com/m417z/minhook) ve [customtkinter](https://github.com/TomSchimansky/CustomTkinter) öğelerine bağlıdır.
+[minhook](https://github.com/m417z/minhook) ve [customtkinter](https://github.com/TomSchimansky/CustomTkinter) öğelerine bağlıdır.
 
 Bu proje [MToolBox](https://winmoes.com/tools/12948.html) içindeki kodu temel alan bağımsız bir bileşendir.
