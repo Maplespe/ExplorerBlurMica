@@ -134,7 +134,7 @@ Not: Eğer Dosya Gezginini çökerten bir şey olursa, Dosya Gezginini açmak ve
 [config]
 #Etki türü 0=Bulanık 1=Akrilik 2=Mika 3=Bulanık(Açık) 4=MikaAlt
 #Bulanık efekti yalnızca Windows 11 22H2'ye kadar mevcuttur. Bulanık (Açık) hem Windows 10 hem de Windows 11'de
-mevcuttur. Mika yalnızca Windows 11'de mevcuttur.
+#mevcuttur. Mika yalnızca Windows 11'de mevcuttur.
 effect=1
 #Adres çubuğunun arka planını kaldır.
 clearAddress=true
