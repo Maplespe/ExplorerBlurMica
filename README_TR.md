@@ -6,7 +6,7 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 | [中文](/README_ZH.md) | [English](/README.md) |
 Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 
-[![license](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+[![Lisans](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Github All Releases](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
 [![GitHub release](https://img.shields.io/github/release/Maplespe/ExplorerBlurMica.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases/latest)
 <img src="https://img.shields.io/badge/language-c++-F34B7D.svg"/>
@@ -17,7 +17,7 @@ Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 * Özel karışım renkleri mevcuttur.
 * Açık/Koyu mod ile uyumlu.
 
-Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass'a] (https://github.com/Maplespe/DWMBlurGlass) bir göz atın.
+Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass](https://github.com/Maplespe/DWMBlurGlass)'a bir göz atın.
 
 ## Uyumluluk
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
