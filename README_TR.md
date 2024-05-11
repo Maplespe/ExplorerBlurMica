@@ -7,12 +7,12 @@ Add background Blur effect or Acrylic or Mica effect to explorer for win10 and w
 Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 
 [![Lisans](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
-[![Github All Releases](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
-[![GitHub release](https://img.shields.io/github/release/Maplespe/ExplorerBlurMica.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases/latest)
+[![Github Tüm Yayınlar](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
+[![GitHub yayını](https://img.shields.io/github/release/Maplespe/ExplorerBlurMica.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases/latest)
 <img src="https://img.shields.io/badge/language-c++-F34B7D.svg"/>
 <img src="https://img.shields.io/github/last-commit/Maplespe/ExplorerBlurMica.svg"/>  
 
-## Effects
+## Efektler
 * Bulanık, Akrilik ve Mika efektleri mevcuttur.
 * Özel karışım renkleri mevcuttur.
 * Açık/Koyu mod ile uyumlu.
@@ -20,17 +20,17 @@ Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass](https://github.com/Maplespe/DWMBlurGlass)'a bir göz atın.
 
 ## Uyumluluk
-Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
+StartAllBack, OldNewExplorer ve diğer pencere stillerini düzenleyen yazılımlarla uyumludur.
 
-It is also compatible with third-party themes.
+Ayrıca üçüncü parti temalarla da uyumludur.
 
 ## Catalog
-- [Overview](#overview)
-- [How to use](#how-to-use)
-- [Config](#config)
-- [Other](#other)
+- [Genel bakış](#overview)
+- [Nasıl kullanılır](#how-to-use)
+- [Yapılandırma](#config)
+- [Diğer](#other)
 
-## Overview
+## Genel bakış
 <details><summary><b>Windows 11</b></summary>
 
 23H2 WinUI3
@@ -49,7 +49,7 @@ a=200
 ```
 ![image](https://github.com/Maplespe/ExplorerBlurMica/blob/main/screenshot/012949.png)
 
-Dark Mode
+Koyu Mod
 ```ini
 [config]
 effect=2
@@ -110,29 +110,29 @@ a=200
 
 </details>
 
-## How to use
+## Nasıl kullanılır
 
-### Install
+### Yükle
 1. Download the compiled program archive from the [Release](https://github.com/Maplespe/ExplorerBlurMica/releases) page.
-2. Unzip it to a location such as "`C:\Program Files`".
-3. Run "`register.cmd`" as administrator.
-4. Reopen the Explorer window to take effect.
+2. "`C:\Program Files`" gibi bir dizinde arşivden çıkarın.
+3. "`register.cmd`" dosyasını yönetici olarak çalıştırın.
+4. Efektler için Dosya Gezgini penceresini yeniden açın.
 
 cmd: `regsvr32 "you path/ExplorerBlurMica.dll"`
 
-### Uninstall
-1. Run "`uninstall.cmd`" as administrator.
-2. Delete the remaining files.
+### Kaldır
+1. "`uninstall.cmd`" dosyasını yönetici olarak çalıştırın.
+2. Geri kalan dosyaları silin.
 
 cmd: `regsvr32 /u "you path/ExplorerBlurMica.dll"`
 
 #
-Note: If something happens that crashes Explorer, press and hold the `ESC` key to open Explorer and uninstall the program.
+Not: Eğer Dosya Gezginini çökerten bir şey olursa, Dosya Gezginini açmak ve programı kaldırmak için `ESC` tuşunu basılı tutun.
 
-## Config
+## Yapılandırma
 ``` ini
 [config]
-#Effect type 0=Blur 1=Acrylic 2=Mica 3=Blur(Clear) 4=MicaAlt
+#Etki türü 0=Bulanık 1=Akrilik 2=Mika 3=Bulanık(Açık) 4=MikaAlt
 #Blur is only available until win11 22h2, Blur (Clear) is available in both win10 and win11, Mica is win11 only.
 effect=1
 #Clear the background of the address bar.
