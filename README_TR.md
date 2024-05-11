@@ -118,13 +118,13 @@ a=200
 3. "`register.cmd`" dosyasını yönetici olarak çalıştırın.
 4. Efektler için Dosya Gezgini penceresini yeniden açın.
 
-cmd: `regsvr32 "dizininiz/ExplorerBlurMica.dll"`
+Komut İstemi komutu: `regsvr32 "dizininiz/ExplorerBlurMica.dll"`
 
 ### Kaldır
 1. "`uninstall.cmd`" dosyasını yönetici olarak çalıştırın.
 2. Geri kalan dosyaları silin.
 
-cmd: `regsvr32 /u "dizininiz/ExplorerBlurMica.dll"`
+Komut İstemi komutu: `regsvr32 /u "dizininiz/ExplorerBlurMica.dll"`
 
 #
 Not: Eğer Dosya Gezginini çökerten bir şey olursa, Dosya Gezginini açmak ve programı kaldırmak için `ESC` tuşunu basılı tutun.
