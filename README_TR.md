@@ -113,7 +113,7 @@ a=200
 ## Nasıl kullanılır
 
 ### Yükle
-1.Derlenmiş program arşivini [Yayın](https://github.com/Maplespe/ExplorerBlurMica/releases) sayfasından indirin.
+1. Derlenmiş program arşivini [Yayın](https://github.com/Maplespe/ExplorerBlurMica/releases) sayfasından indirin.
 2. "`C:\Program Files`" gibi bir dizinde arşivden çıkarın.
 3. "`register.cmd`" dosyasını yönetici olarak çalıştırın.
 4. Efektler için Dosya Gezgini penceresini yeniden açın.
