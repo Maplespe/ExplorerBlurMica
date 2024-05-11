@@ -17,7 +17,7 @@ Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 * Özel karışım renkleri mevcuttur.
 * Açık/Koyu mod ile uyumlu.
 
-Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass] (https://github.com/Maplespe/DWMBlurGlass)'a bir göz atın.
+Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass'a] (https://github.com/Maplespe/DWMBlurGlass) bir göz atın.
 
 ## Uyumluluk
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
