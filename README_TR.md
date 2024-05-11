@@ -4,7 +4,7 @@ Windows 10 ve 11 için Dosya Gezginine Bulanık, Akrilik veya Mika arka plan efe
 给文件资源管理器添加背景模糊效果或Acrylic、Mica效果 适用于win10和win11
 #
 | [中文](/README_ZH.md) | [English](/README.md) |
-Bu proje [LGNU V3 lisansı](/COPYING.LESSER)nı kullanmaktadır.
+Bu proje [LGNU V3 lisans](/COPYING.LESSER)ını kullanmaktadır.
 
 [![Lisans](https://img.shields.io/github/license/Maplespe/ExplorerBlurMica.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![Github Tüm Yayınlar](https://img.shields.io/github/downloads/Maplespe/ExplorerBlurMica/total.svg)](https://github.com/Maplespe/ExplorerBlurMica/releases)
