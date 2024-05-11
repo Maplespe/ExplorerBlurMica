@@ -13,13 +13,13 @@ Bu proje [LGNU V3 lisansı](/COPYING.LESSER) kullanmaktadır.
 <img src="https://img.shields.io/github/last-commit/Maplespe/ExplorerBlurMica.svg"/>  
 
 ## Effects
-* Blur or Acrylic, Mica effects are available.
-* Custom blend colors are available.
-* Light/Dark Mode Adaptive.
+* Bulanık, Akrilik ve Mika efektleri mevcuttur.
+* Özel karışım renkleri mevcuttur.
+* Açık/Koyu mod ile uyumlu.
 
-This project is for Explorer only, if you want to apply the effect globally, take a look at our other project [DWMBlurGlass](https://github.com/Maplespe/DWMBlurGlass).
+Bu proje sadece Dosya Gezgini içindir. Eğer efekti küresel olarak uygulamak isterseniz diğer projemiz olan [DWMBlurGlass] (https://github.com/Maplespe/DWMBlurGlass)'a bir göz atın.
 
-## Compatibility
+## Uyumluluk
 Compatible with StartAllBack, OldNewExplorer and other software that modifies window styles.
 
 It is also compatible with third-party themes.
