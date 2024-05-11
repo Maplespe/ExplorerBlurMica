@@ -1,5 +1,5 @@
 # ExplorerBlurMica
-Add background Blur effect or Acrylic or Mica effect to explorer for win10 and win11
+Windows 10 ve 11 için Dosya Gezginine Bulanık, Akrilik veya Mika arka plan efekti ekleyin
 
 给文件资源管理器添加背景模糊效果或Acrylic、Mica效果 适用于win10和win11
 #
@@ -24,7 +24,7 @@ StartAllBack, OldNewExplorer ve diğer pencere stillerini düzenleyen yazılıml
 
 Ayrıca üçüncü parti temalarla da uyumludur.
 
-## Catalog
+## Katalog
 - [Genel bakış](#overview)
 - [Nasıl kullanılır](#how-to-use)
 - [Yapılandırma](#config)
@@ -113,18 +113,18 @@ a=200
 ## Nasıl kullanılır
 
 ### Yükle
-1. Download the compiled program archive from the [Release](https://github.com/Maplespe/ExplorerBlurMica/releases) page.
+1.Derlenmiş program arşivini [Yayın](https://github.com/Maplespe/ExplorerBlurMica/releases) sayfasından indirin.
 2. "`C:\Program Files`" gibi bir dizinde arşivden çıkarın.
 3. "`register.cmd`" dosyasını yönetici olarak çalıştırın.
 4. Efektler için Dosya Gezgini penceresini yeniden açın.
 
-cmd: `regsvr32 "you path/ExplorerBlurMica.dll"`
+cmd: `regsvr32 "dizininiz/ExplorerBlurMica.dll"`
 
 ### Kaldır
 1. "`uninstall.cmd`" dosyasını yönetici olarak çalıştırın.
 2. Geri kalan dosyaları silin.
 
-cmd: `regsvr32 /u "you path/ExplorerBlurMica.dll"`
+cmd: `regsvr32 /u "dizininiz/ExplorerBlurMica.dll"`
 
 #
 Not: Eğer Dosya Gezginini çökerten bir şey olursa, Dosya Gezginini açmak ve programı kaldırmak için `ESC` tuşunu basılı tutun.
@@ -160,10 +160,10 @@ b=0
 a=120
 ```
 
-Save the configuration after modification and reopen the File Explorer window to take effect.
+Değişiklikten sonra yapılandırmayı kaydedin ve etkili olması için Dosya Gezgini penceresini yeniden açın.
 
 ## Other
-The GUI running on Python.
-Dependent on [minhook](https://github.com/m417z/minhook) and [customtkinter](https://github.com/TomSchimansky/CustomTkinter).
+Grafik kullanıcı arayüzü Python'da çalışmaktadır.
+minhook](https://github.com/m417z/minhook) ve [customtkinter](https://github.com/TomSchimansky/CustomTkinter) öğelerine bağlıdır.
 
-This project is an independent component based on the code in the [MToolBox](https://winmoes.com/tools/12948.html).
+Bu proje [MToolBox](https://winmoes.com/tools/12948.html) içindeki kodu temel alan bağımsız bir bileşendir.
