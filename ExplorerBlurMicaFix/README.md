@@ -70,3 +70,12 @@ g++ -shared -O2 -DUNICODE -D_UNICODE -static-libgcc `
 ## 许可
 
 LGPL-3.0，与上游 ExplorerBlurMica 保持一致。
+
+---
+
+## 注
+
+以上内容完全由一个受此 bug 困扰的用户使用 DeepSeek V4 Pro 100% vibe coding 生成，不喜勿骂。
+
+> Everything above was 100% vibe-coded by a user affected by this bug using
+> DeepSeek V4 Pro. If you don't like it, please be kind — no flaming. 🙏
