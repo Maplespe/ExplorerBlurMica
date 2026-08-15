@@ -1,0 +1,8 @@
+# build artifacts
+*.dll
+*.exp
+*.lib
+*.o
+*.log
+*.png
+*.zip
