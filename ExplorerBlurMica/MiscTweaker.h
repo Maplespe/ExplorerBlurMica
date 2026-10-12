@@ -22,6 +22,7 @@
 namespace MBox::MiscTweaker
 {
 	void Startup();
+	void RefreshModuleHooks();
 	void Shutdown();
 
 	extern LRESULT WINAPI MyDefWindowProcW(

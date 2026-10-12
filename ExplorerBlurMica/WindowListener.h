@@ -28,6 +28,7 @@ namespace MBox
 	class WindowListenerImpl
 	{
 	protected:
+		static std::recursive_mutex s_mutex;
 		HWND m_hwnd = nullptr;
 		mutable std::shared_ptr<IWindowListenerCallback> m_listener = nullptr;
 
@@ -61,23 +62,35 @@ namespace MBox
 	public:
 		WindowListener(HWND hwnd, ULONG_PTR token) : WindowListenerImpl(hwnd), m_token(token)
 		{
+			std::scoped_lock lock(s_mutex);
 			s_windowList[token].push_back(hwnd);
 		}
 		~WindowListener()
 		{
+			std::scoped_lock lock(s_mutex);
 			for (auto it = s_windowList[m_token].begin(); it != s_windowList[m_token].end(); it++) if (*it == m_hwnd) { it = s_windowList[m_token].erase(it); break; }
 		}
 
 		static void DetachAll(ULONG_PTR token)
 		{
-			for (const auto& window : s_windowList[token])
+			std::vector<HWND> windows;
+			{
+				std::scoped_lock lock(s_mutex);
+				const auto it = s_windowList.find(token);
+				if (it == s_windowList.end()) return;
+				windows = it->second;
+			}
+			for (const auto& window : windows)
 			{
 				WindowListenerImpl::Detach(window);
 			}
+			std::scoped_lock lock(s_mutex);
 			s_windowList.erase(token);
 		}
 		static WindowListener* Attach(HWND hwnd, ULONG_PTR token, std::function<void(const WindowListener* ptr, bool newlyCreated, std::shared_ptr<IWindowListenerCallback>& listener)> callback)
 		{
+			if (!hwnd || GetWindowThreadProcessId(hwnd, nullptr) != GetCurrentThreadId()) return nullptr;
+			std::scoped_lock lock(s_mutex);
 			WindowListener* windowListener = static_cast<WindowListener*>(WindowListenerImpl::Get(hwnd));
 			if (windowListener)
 			{

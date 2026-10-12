@@ -4,6 +4,35 @@ https://github.com/Maplespe/ExplorerBlurMica
 
 更新日志(update log)：
 
+2.1.0 2026-10-12
+此版本对核心代码进行了大幅重构 着重优化了新系统兼容性、稳定性和性能
+
+bug修复:
+修复了新版Windows 11下部分工具栏背景无法清除的问题
+更新了预览面板文本控件的适配 改进了新系统下的文本背景渲染
+修复了Blur(Clear)效果(effect=3)被MicaAlt效果覆盖的问题
+
+优化:
+改进了内部初始化方式 根据窗口事件按需初始化 减少资源管理器启动时的开销
+优化了Hook和多窗口、多标签页的处理 减少重复初始化和不必要的资源占用
+改进了资源释放和线程同步 提高长期运行的稳定性
+
+现有功能、配置选项和注册卸载方式保持不变
+
+In this version, we refactored the core code, focusing on compatibility with newer systems, stability and performance.
+
+Bug fixes:
+Fixed an issue where some toolbar backgrounds could not be cleared on newer versions of Windows 11.
+Updated preview panel text control support and improved text background rendering on newer systems.
+Fixed the Blur(Clear) effect (effect=3) being overridden by the MicaAlt effect.
+
+Optimizations:
+Improved internal initialization to respond to window events, reducing overhead when File Explorer starts.
+Optimized hooks and handling of multiple windows and tabs, reducing repeated initialization and unnecessary resource usage.
+Improved resource cleanup and thread synchronization for better stability during long-term use.
+
+Existing features, configuration options, and registration and uninstall methods remain unchanged.
+
 2.0.1 2024-2-12
 兼容了Windows 11 Preview Canary 23H2 26040和24H2 26052
 优化了与StartAllBack的兼容性

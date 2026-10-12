@@ -18,6 +18,9 @@
 /ExplorerBlurMica/old
 /ExplorerBlurMica/Helper/DirectUIHelper.h
 /ExplorerBlurMica/dllmain.cpp
+/ExplorerBlurMica/Helper/ExplorerBootstrap.h
+/ExplorerBlurMica/Helper/MsfteditTextHook.h
+/tests/
 /build/x64/Release/ExplorerBlurMica.pri
 /build/x64/Release/Microsoft.WindowsAppRuntime.Bootstrap.dll
 /screenshot/new

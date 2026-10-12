@@ -31,12 +31,21 @@ namespace MBox
 		VisualTreeWatcher(VisualTreeWatcher&&) = delete;
 		VisualTreeWatcher& operator=(VisualTreeWatcher&&) = delete;
 		~VisualTreeWatcher();
+		HRESULT Stop() noexcept;
+		void Start();
 
 		template <typename T = ::IInspectable>
 		auto FromHandle(InstanceHandle handle)
 		{
+			com_ptr<IXamlDiagnostics> xamlDiagnostics = nullptr;
+			{
+				std::lock_guard lock(m_adviceMutex);
+				if (m_stopping.load() || !m_xamlDiagnostics) throw_hresult(E_ABORT);
+				xamlDiagnostics = m_xamlDiagnostics;
+			}
+
 			com_ptr<::IInspectable> obj = nullptr;
-			m_xamlDiagnostics->GetIInspectableFromHandle(
+			xamlDiagnostics->GetIInspectableFromHandle(
 				handle, obj.put()
 			);
 			return obj.as<T>();
@@ -44,28 +53,48 @@ namespace MBox
 		template <typename T = ::IInspectable>
 		auto FromIInspectable(com_ptr<T> obj)
 		{
+			com_ptr<IXamlDiagnostics> xamlDiagnostics = nullptr;
+			{
+				std::lock_guard lock(m_adviceMutex);
+				if (m_stopping.load() || !m_xamlDiagnostics) throw_hresult(E_ABORT);
+				xamlDiagnostics = m_xamlDiagnostics;
+			}
+
 			InstanceHandle handle = 0;
 			check_hresult(
-				m_xamlDiagnostics->GetHandleFromIInspectable(obj.get(), &handle)
+				xamlDiagnostics->GetHandleFromIInspectable(obj.get(), &handle)
 			);
 
 			return handle;
 		}
 		auto FromIInspectable(::IInspectable* obj)
 		{
+			com_ptr<IXamlDiagnostics> xamlDiagnostics = nullptr;
+			{
+				std::lock_guard lock(m_adviceMutex);
+				if (m_stopping.load() || !m_xamlDiagnostics) throw_hresult(E_ABORT);
+				xamlDiagnostics = m_xamlDiagnostics;
+			}
+
 			InstanceHandle handle = 0;
 			check_hresult(
-				m_xamlDiagnostics->GetHandleFromIInspectable(obj, &handle)
+				xamlDiagnostics->GetHandleFromIInspectable(obj, &handle)
 			);
 
 			return handle;
 		}
-		auto GetXamlDiagnostics() const { return m_xamlDiagnostics; }
+		auto GetXamlDiagnostics() const
+		{
+			std::lock_guard lock(m_adviceMutex);
+			return m_xamlDiagnostics;
+		}
 
 		using PropertyCallback = std::function<bool(const PropertyChainValue& property)>;
 		using PropertySourceCallback = std::function<bool(const PropertyChainSource& source)>;
 		IFACEMETHODIMP WalkInstanceHandle(InstanceHandle handle, PropertyCallback propertyCallback, PropertySourceCallback sourceCallback = nullptr);
 	private:
+		HRESULT StartVisualTreeChangeAdvise() noexcept;
+
 		HRESULT STDMETHODCALLTYPE OnVisualTreeChange(
 			ParentChildRelation relation,
 			VisualElement element,
@@ -77,6 +106,10 @@ namespace MBox
 			LPCWSTR context
 		) noexcept override;
 
+		mutable std::mutex m_adviceMutex;
 		com_ptr<IXamlDiagnostics> m_xamlDiagnostics = nullptr;
+		com_ptr<IVisualTreeService3> m_visualTreeService = nullptr;
+		bool m_advised = false;
+		std::atomic_bool m_stopping = false;
 	};
 }

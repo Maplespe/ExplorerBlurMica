@@ -3,7 +3,7 @@
 
 namespace MBox
 {
-	void Startup();
+	bool Startup();
 	void StartupPart();
 	void Shutdown();
 }

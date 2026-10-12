@@ -34,20 +34,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SupportLTL>true</SupportLTL>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
@@ -55,7 +55,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <SupportLTL>true</SupportLTL>
@@ -173,6 +173,8 @@
     <ClInclude Include="Helper\comdef.h" />
     <ClInclude Include="Helper\DirectUIHelper.h" />
     <ClInclude Include="Helper\DllNotifyRoutine.h" />
+    <ClInclude Include="Helper\ExplorerBootstrap.h" />
+    <ClInclude Include="Helper\MsfteditTextHook.h" />
     <ClInclude Include="Helper\GraphicsHelper.h" />
     <ClInclude Include="Helper\ThemeHelper.h" />
     <ClInclude Include="Helper\VersionHelper.h" />
@@ -205,6 +207,8 @@
     <ClCompile Include="DirectUITweaker.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Helper\DllNotifyRoutine.cpp" />
+    <ClCompile Include="Helper\ExplorerBootstrap.cpp" />
+    <ClCompile Include="Helper\MsfteditTextHook.cpp" />
     <ClCompile Include="Helper\GraphicsHelper.cpp" />
     <ClCompile Include="Helper\ThemeHelper.cpp" />
     <ClCompile Include="Helper\Win32Helper.cpp" />
